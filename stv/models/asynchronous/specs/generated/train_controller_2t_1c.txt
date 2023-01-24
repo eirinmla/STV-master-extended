@@ -1,0 +1,29 @@
+Agent Train1:
+LOCAL: [Train1_in, Train1_out, Train1_return]
+PERSISTENT: []
+INITIAL: []
+init: wait
+shared[2] in_Train1: wait -> tunnel [Train1_in:=1]
+shared[2] out_Train1: tunnel -> away [Train1_out:=1]
+return: away -> wait [Train1_return:=1]
+
+Agent Train2:
+LOCAL: [Train2_in, Train2_out, Train2_return]
+PERSISTENT: []
+INITIAL: []
+init: wait
+shared[2] in_Train2: wait -> tunnel [Train2_in:=1]
+shared[2] out_Train2: tunnel -> away [Train2_out:=1]
+return: away -> wait [Train2_return:=1]
+
+Agent Controller:
+LOCAL: []
+PERSISTENT: []
+INITIAL: []
+init: green
+shared[2] in_Train1: green -> red
+shared[2] out_Train1: red -> green
+shared[2] in_Train2: green -> red
+shared[2] out_Train2: red -> green
+
+FORMULA: <<Train1>>F(Train1_return=1)

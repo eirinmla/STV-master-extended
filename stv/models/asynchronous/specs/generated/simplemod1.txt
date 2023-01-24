@@ -1,0 +1,17 @@
+SEMANTICS: synchronous
+
+Agent a:
+init: state1
+act1: state1 -> state2 [p=True]
+nact1: state1 -> state1
+nact2: state2 -> state2
+
+Agent b:
+init: state1
+nact1: state1 -> state1
+nact2: state2 -> state2
+
+PERSISTENT: [p]
+INITIAL: [p = False]
+COALITION: [b]
+FORMULA: <<b>>F(p=True) 

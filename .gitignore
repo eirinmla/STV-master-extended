@@ -1,0 +1,8 @@
+.idea/
+venv
+
+output
+__pycache__/
+gui/node_modules
+
+*.pyc
