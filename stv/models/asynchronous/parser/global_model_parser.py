@@ -28,7 +28,7 @@ class GlobalModelParser:
         persistent = []
         coalition = []
         goal = []
-        logicType = LogicType.ATL
+        logicType = LogicType.UCL
         formula = ""
         show_epistemic = True
         semantics = "asynchronous"
@@ -176,6 +176,8 @@ class GlobalModelParser:
             return LogicType.ATL
         elif logicStr == "CTL":
             return LogicType.CTL
+        elif logicStr == "UCL":
+            return LogicType.UCL
         else:
             return LogicType.ATL
 

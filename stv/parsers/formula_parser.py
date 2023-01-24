@@ -136,7 +136,7 @@ class FormulaParser(Parser):
 
     def __parseFormulaAgents(self):
         agents = []
-        self.readUntil("<<") # changed from self.consume("<<") to self.readUntil("<<")
+        self.consume("<<") # changed from self.consume("<<") to self.readUntil("<<")
         while True:
             res = self.readUntil([">", ","])
             str = res[0]
