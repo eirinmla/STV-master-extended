@@ -39,6 +39,11 @@ class CtlFormula(Formula):
     def __str__(self):
         return str(self.pathQuantifier.value) + super().__str__()
 
+class UpgradeFormula(Formula):
+    upgrades = []
+
+    def __str__(self):
+        return "[" + (", ".join(self.upgrades) + "]" + super().__str__())
 
 class SimpleExpressionOperator(Enum):
     AND = "&"
@@ -118,10 +123,20 @@ class FormulaParser(Parser):
         formula.expression = self.__parseFormulaExpression()
 
         return formula
+    
+    def parseUpgradeFormula(self, formulaStr):
+        self.setStr(formulaStr)
+
+        formula = UpgradeFormula()
+        formula.upgrades = self.__parseFormulaUpgrades()
+        formula.temporalOperator = self.__parseFormulaTemporalOperator()
+        formula.expression = self.__parseFormulaExpression()
+
+        return formula 
 
     def __parseFormulaAgents(self):
         agents = []
-        self.consume("<<")
+        self.readUntil("<<") # changed from self.consume("<<") to self.readUntil("<<")
         while True:
             res = self.readUntil([">", ","])
             str = res[0]
@@ -133,6 +148,22 @@ class FormulaParser(Parser):
                 self.consume(",")
         self.consume(">>")
         return agents
+
+    def __parseFormulaUpgrades(self):
+        upgrades = []
+        self.consume("[")
+        while True:
+            res = self.readUntil(["]", ","])
+            str = res[0]
+            chr = res[1]
+            upgrades.append(str)
+            if chr == "]":
+                break
+            else:
+                self.consume(",")
+        self.consume("]")
+        return upgrades
+
 
     def __parseFormulaTemporalOperator(self):
         c, _ = self.readUntil(["("])

@@ -15,6 +15,7 @@ from stv.parsers import FormulaParser, TemporalOperator
 class LogicType(Enum):
     ATL = "ATL"
     CTL = "CTL"
+    UCL = "UCL"
 
 
 class GlobalModel:
@@ -62,6 +63,8 @@ class GlobalModel:
             self._formula_obj = self._parseAtlFormula()
         elif self.isCtl():
             self._formula_obj = self._parseCtlFormula()
+        elif self.isUCL():
+            self._formula_obj = self._parseUpgradeFormula()
         self._states: List[GlobalState] = []
         self._agents_count: int = 0
         self._states_dict: Dict[str, int] = dict()
@@ -84,6 +87,10 @@ class GlobalModel:
     def _parseCtlFormula(self):
         formula_parser = FormulaParser()
         return formula_parser.parseCtlFormula(self._formula)
+    
+    def _parseUpgradeFormula(self):
+        formula_parser = FormulaParser()
+        return formula_parser.parseUpgradeFormula(self._formula)
 
     def _getCtlCoalition(self):
         coalition: List[str] = []
@@ -101,6 +108,9 @@ class GlobalModel:
 
     def isCtl(self):
         return self._logicType == LogicType.CTL
+    
+    def isUCL(self):
+        return self._logicType == LogicType.UCL
 
     def get_agent(self):
         return self.agent_name_to_id(self.coalition[0])
