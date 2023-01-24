@@ -39,7 +39,7 @@ class CtlFormula(Formula):
     def __str__(self):
         return str(self.pathQuantifier.value) + super().__str__()
 
-class UpgradeFormula(Formula):
+class UpgradeFormula(AtlFormula):
     upgrades = []
 
     def __str__(self):
@@ -129,6 +129,7 @@ class FormulaParser(Parser):
 
         formula = UpgradeFormula()
         formula.upgrades = self.__parseFormulaUpgrades()
+        formula.agents = self.__parseFormulaAgents()
         formula.temporalOperator = self.__parseFormulaTemporalOperator()
         formula.expression = self.__parseFormulaExpression()
 
@@ -136,7 +137,7 @@ class FormulaParser(Parser):
 
     def __parseFormulaAgents(self):
         agents = []
-        self.consume("<<") # changed from self.consume("<<") to self.readUntil("<<")
+        self.consume("<<")
         while True:
             res = self.readUntil([">", ","])
             str = res[0]
@@ -167,6 +168,7 @@ class FormulaParser(Parser):
 
     def __parseFormulaTemporalOperator(self):
         c, _ = self.readUntil(["("])
+        print(c)
         if c == "F":
             return TemporalOperator.F
         elif c == "G":
