@@ -15,6 +15,10 @@ class PathQuantifier(Enum):
     E = "E"
 
 
+class UpgradeType(Enum):
+    P = "+"
+    N = "-"
+
 class Formula:
     expression = None
     temporalOperator = None
@@ -41,9 +45,10 @@ class CtlFormula(Formula):
 
 class UpgradeFormula(AtlFormula):
     upgrades = []
+    upgradeType = None
 
     def __str__(self):
-        return "[" + (", ".join(self.upgrades) + "]" + super().__str__())
+        return "[" + (", ".join(self.upgrades) + "]" + self.upgradeType.value + super().__str__())
 
 class SimpleExpressionOperator(Enum):
     AND = "&"
@@ -129,9 +134,15 @@ class FormulaParser(Parser):
 
         formula = UpgradeFormula()
         formula.upgrades = self.__parseFormulaUpgrades()
+        print(formula.upgrades)
         formula.agents = self.__parseFormulaAgents()
+        print(formula.agents)
         formula.temporalOperator = self.__parseFormulaTemporalOperator()
+        print(formula.temporalOperator)
+        formula.upgradeType = self.__parseFormulaUpgradeType(formula.upgrades)
+        print(formula.upgradeType)
         formula.expression = self.__parseFormulaExpression()
+        print(formula.expression)
 
         return formula 
 
@@ -164,11 +175,16 @@ class FormulaParser(Parser):
                 self.consume(",")
         self.consume("]")
         return upgrades
+    
+    def __parseFormulaUpgradeType(self, formula):
+        if (formula[0][-1]) == "+":
+            return UpgradeType.P
+        elif (formula[0][-1]) == "-":
+            return UpgradeType.N
 
-
+    
     def __parseFormulaTemporalOperator(self):
         c, _ = self.readUntil(["("])
-        print(c)
         if c == "F":
             return TemporalOperator.F
         elif c == "G":
