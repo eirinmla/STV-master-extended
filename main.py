@@ -115,7 +115,7 @@ def ucl(filename):
     start = time.process_time()
     model.generate(reduction=False)
     end = time.process_time()
-
+    # skal det være en sjekk her for å se om formelen og modellene er clashfree? 
     print(f"Generation time: {end - start}, #states: {model.states_count}, #transitions: {model.transitions_count}")
 
     result = model.verify_approximation_ucl(True)

@@ -881,9 +881,9 @@ class GlobalModel:
 
     def verify_approximation_ucl(self, perfect_inf: bool):
         if perfect_inf:
-            atl_model = self._model.to_atl_perfect()
+            init_model = self._model.to_atl_perfect()
         else:
-            atl_model = self._model.to_atl_imperfect()
+            init_model = self._model.to_atl_imperfect()
 
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
@@ -891,7 +891,8 @@ class GlobalModel:
         start = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
             result = {0}
-        # print(result)
+        elif self._formula_obj.upgradeType == UpgradeType.N:
+            result = {0}
         end = time.process_time()
 
         return 0 in result, end - start, result
