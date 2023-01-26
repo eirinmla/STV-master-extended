@@ -1,6 +1,6 @@
 import itertools
 
-from stv.parsers.formula_parser import AtlFormula, CtlFormula, PathQuantifier
+from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier
 from typing import List, Dict, Any, Set, Tuple
 from enum import Enum
 import time
@@ -9,7 +9,7 @@ from stv.models.asynchronous.local_model import LocalModel
 from stv.models.asynchronous.local_transition import LocalTransition, SharedTransition
 from stv.models import SimpleModel
 from stv.comparing_strats import StrategyComparer
-from stv.parsers import FormulaParser, TemporalOperator
+from stv.parsers import FormulaParser, TemporalOperator, UpgradeType
 
 
 class LogicType(Enum):
@@ -75,6 +75,8 @@ class GlobalModel:
             self.coalition: List = self._formula_obj.agents
         elif self.isCtl():
             self.coalition: List = self._getCtlCoalition()
+        elif self.isUCL():
+            self.coalition: List = self._formula_obj.agents
         self._stack1_dict: Dict[str, int] = dict()
         self._transitions_count: int = 0
         self._epistemic_states_dictionaries: List[Dict[str, Set[int]]] = []
@@ -840,6 +842,7 @@ class GlobalModel:
                 winning_states.add(state.id)
         return winning_states
 
+
     def verify_approximation(self, perfect_inf: bool):
         if perfect_inf:
             atl_model = self._model.to_atl_perfect()
@@ -874,6 +877,25 @@ class GlobalModel:
         end = time.process_time()
 
         return 0 in result, end - start, result, atl_model.strategy
+
+
+    def verify_approximation_ucl(self, perfect_inf: bool):
+        if perfect_inf:
+            atl_model = self._model.to_atl_perfect()
+        else:
+            atl_model = self._model.to_atl_imperfect()
+
+        winning_states = set(self.get_formula_winning_states())
+        coalition = self.agent_name_coalition_to_ids(self._coalition)
+        result = []
+        start = time.process_time()
+        if self._formula_obj.upgradeType == UpgradeType.P:
+            result = {0}
+        # print(result)
+        end = time.process_time()
+
+        return 0 in result, end - start, result
+
 
     def verify_domino(self):
         agent_id = self.get_agent()
