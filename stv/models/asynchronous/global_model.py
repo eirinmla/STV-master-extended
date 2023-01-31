@@ -879,12 +879,8 @@ class GlobalModel:
         return 0 in result, end - start, result, atl_model.strategy
 
 
-    def verify_approximation_ucl(self, perfect_inf: bool):
-        if perfect_inf:
-            init_model = self._model.to_atl_perfect()
-        else:
-            init_model = self._model.to_atl_imperfect()
-
+    def verify_approximation_ucl(self):
+        init_model = self._model.to_atl_perfect()
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
