@@ -13,6 +13,6 @@ nact2: state2 -> state2
 
 PERSISTENT: [p]
 INITIAL: [p = False]
-COALITION: [b]
+COALITION: [a]
 LOGIC: UCL
-FORMULA: [()+]<<b>>(p=True) 
+FORMULA: [(!p, a, p)+]<<a>>(p=True) 

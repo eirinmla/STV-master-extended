@@ -881,13 +881,16 @@ class GlobalModel:
 
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
+        updated_model = "halla"
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
         start = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
+            print("denne+: ",self._formula_obj.upgrades)
             result = {0}
         elif self._formula_obj.upgradeType == UpgradeType.N:
+            print("denne-: ",self._formula_obj.upgrades)
             result = {0}
         end = time.process_time()
 

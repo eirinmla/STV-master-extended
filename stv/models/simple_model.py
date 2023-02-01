@@ -259,7 +259,7 @@ class SimpleModel:
         """
         atl_model = ATLIrModel(self._no_agents)
         atl_model = self._copy_model(atl_model, self._actions, epistemic=False)
-        ATLIrModel.print_model(atl_model)
+        ATLIrModel.print_model(atl_model) # only a print
         return atl_model
 
     def to_atl_imperfect(self) -> ATLirModel:

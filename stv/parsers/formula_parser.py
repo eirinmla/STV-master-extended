@@ -171,7 +171,14 @@ class FormulaParser(Parser):
             res = self.readUntil(["]", ","])
             str = res[0]
             chr = res[1]
-            upgrades.append(str)
+            if "(" in str:
+                upgrades.append(str[1:])
+            elif ")" in str:
+                upgrades.append(str[:-2])
+                upgrades.append(str[-1])
+                
+            else:
+                upgrades.append(str)
             if chr == "]":
                 break
             else:
@@ -179,10 +186,11 @@ class FormulaParser(Parser):
         self.consume("]")
         return upgrades
     
-    def __parseFormulaUpgradeType(self, formula):
-        if (formula[0][-1]) == "+":
+    def __parseFormulaUpgradeType(self, formula): #  notes if the upgrade is positive or negative, it takes the last sign of the formula which will always be + or -, 
+                                                  #  and all updates in the same upgrade is of the same type. 
+        if (formula[-1]) == "+":
             return UpgradeType.P
-        elif (formula[0][-1]) == "-":
+        elif (formula[-1]) == "-":
             return UpgradeType.N
 
     
