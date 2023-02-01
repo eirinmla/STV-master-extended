@@ -192,6 +192,8 @@ class FormulaParser(Parser):
             return UpgradeType.P
         elif (formula[-1]) == "-":
             return UpgradeType.N
+        else: 
+            print("There is something wrong with the formula.")
 
     
     def __parseFormulaTemporalOperator(self):
