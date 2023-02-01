@@ -878,24 +878,56 @@ class GlobalModel:
 
         return 0 in result, end - start, result, atl_model.strategy
 
+    def clashfree(self): # checks if the updates clashes or not
+        upgrades = self._formula_obj.upgrades
+        print("upgrades", upgrades)
+        if len(upgrades) % 4 != 0:
+            print("ERROR: Something is wrong with the updates")
+            return False
+        else: 
+            indexes = []
+            from_states = []
+            agents = []
+            for element in upgrades:
+                indexes.append(upgrades.index(element))
+            c = 0
+            while c < len(indexes):
+                if c % 4 == 0:
+                    from_states.append(indexes[c])
+                elif c % 4 == 1:
+                    agents.append(indexes[c]) 
+                c += 1
+            if len(set(agents)) == 1: # if only one agent is granted superpowers.
+                return True
+            elif len(set(agents)) > 1 and len(set(from_states)) != len(from_states): # if there is more then one superpower out of the same state and more then one agent who is granted superpowers.
+                return False
+            else: 
+                return True
 
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
-        updated_model = "halla"
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
         start = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
-            print("denne+: ",self._formula_obj.upgrades)
-            result = {0}
+            print("denne+: ", self._formula_obj.upgrades)
+            result = {0} # skal returnere updated model
+            # må sjekke at den er clash-free, kan man måtte legge til flere verdener eller skal det være error på dette og? 
+            # må generere updated model, init model + ekstra transitions
+            
         elif self._formula_obj.upgradeType == UpgradeType.N:
-            print("denne-: ",self._formula_obj.upgrades)
-            result = {0}
+            # må sjekke at den er clash-free, kan man måtte legge til flere verdener eller skal det være error på dette og? 
+            # må generere updated model, init model - transitions
+            print("denne-: ", self._formula_obj.upgrades)
+            result = {0} # skal returnere updated model
+        # verifisere som i next operator men gå fra init modell til updated modell
         end = time.process_time()
 
         return 0 in result, end - start, result
 
+
+    
 
     def verify_domino(self):
         agent_id = self.get_agent()

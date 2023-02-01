@@ -115,13 +115,12 @@ def ucl():
     start = time.process_time()
     model.generate(reduction=False)
     end = time.process_time()
-    # skal det være en sjekk her for å se om formelen og modellene er clashfree? 
-    print(f"Generation time: {end - start}, #states: {model.states_count}, #transitions: {model.transitions_count}")
-
-    result = model.verify_approximation_ucl()
-
-    print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
-
+    if not model.clashfree(): 
+        print("ERROR: The updates are clashing.")
+    else: 
+        print(f"Generation time: {end - start}, #states: {model.states_count}, #transitions: {model.transitions_count}")
+        result = model.verify_approximation_ucl()
+        print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
     #result = model.verify_approximation_ucl()
 
     #print(f"Lower approximation\nTime: {result[1]}, result: {result[0]}")
