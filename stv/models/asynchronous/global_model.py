@@ -906,6 +906,7 @@ class GlobalModel:
 
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
+        updated_model = self._model.updated_model()
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []

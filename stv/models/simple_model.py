@@ -119,7 +119,7 @@ class SimpleModel:
         Add actions from the transition to the model
         :param actions: list of actions to add, one per agent
         :return: None
-        """
+        """ 
         for agent_id in range(self._no_agents):
             self._actions[agent_id].add(actions[agent_id])
 
@@ -251,7 +251,7 @@ class SimpleModel:
             possible_actions.add(tuple(actions))
 
         return list(possible_actions)
-
+    
     def to_atl_perfect(self) -> ATLIrModel:
         """
         Creates Alternating-Time Temporal Logic model with perfect information
@@ -261,6 +261,18 @@ class SimpleModel:
         atl_model = self._copy_model(atl_model, self._actions, epistemic=False)
         ATLIrModel.print_model(atl_model) # only a print
         return atl_model
+
+    def updated_model(self) -> ATLIrModel:
+        """
+        Updates the Alternating-Time Temporal Logic model with perfect information with dictatorial transitions
+        :return: ATLIr model
+        """
+        updated_model = ATLIrModel(self._no_agents)
+        self.add_transition(0, 1, ["hei", "*"], 1)
+        updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
+        ATLIrModel.print_model(updated_model) # only a print
+        return updated_model
+
 
     def to_atl_imperfect(self) -> ATLirModel:
         """
