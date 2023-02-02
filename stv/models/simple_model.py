@@ -262,13 +262,15 @@ class SimpleModel:
         ATLIrModel.print_model(atl_model) # only a print
         return atl_model
 
-    def updated_model(self) -> ATLIrModel:
+    def updated_model(self, new_transitions) -> ATLIrModel:
         """
         Updates the Alternating-Time Temporal Logic model with perfect information with dictatorial transitions
+        transitions as list will be in the form [[from state, to state, actions(list), time],[...]]
         :return: ATLIr model
         """
         updated_model = ATLIrModel(self._no_agents)
-        self.add_transition(0, 1, ["hei", "*"], 1)
+        for transition in new_transitions:
+            self.add_transition(transition[0], transition[1], transition[2], transition[3])
         updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
         ATLIrModel.print_model(updated_model) # only a print
         return updated_model

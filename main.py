@@ -115,15 +115,15 @@ def ucl():
     start = time.process_time()
     model.generate(reduction=False)
     end = time.process_time()
+    # må sjekke at den er clash-free, kan man måtte legge til flere verdener eller skal det være error på dette og? 
     if not model.clashfree(): 
         print("ERROR: The updates are clashing.")
     else: 
         print(f"Generation time: {end - start}, #states: {model.states_count}, #transitions: {model.transitions_count}")
         result = model.verify_approximation_ucl()
         print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
-    #result = model.verify_approximation_ucl()
-
-    #print(f"Lower approximation\nTime: {result[1]}, result: {result[0]}")
+        #result = model.verify_approximation_ucl()
+        #print(f"Lower approximation\nTime: {result[1]}, result: {result[0]}")
 
 @run.group()
 def generate_spec():

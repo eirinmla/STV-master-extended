@@ -477,7 +477,7 @@ class ATLIrModel:
     def print_model(self):
         print("----MODEL START-----")
         for state in self.states:
-            print("state:", state)
+            print("states: ", state)
         for transition in self.transitions:
             for t in transition:
                 print("transition", t)

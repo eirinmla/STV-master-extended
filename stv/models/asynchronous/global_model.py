@@ -904,31 +904,35 @@ class GlobalModel:
             else: 
                 return True
 
+    def reverse_state_dict(self):
+        # changes keys to values and opisite, new value is only propositions.
+        print(self._states_dict)
+        props_in_states = {value:key.split("[")[2].strip("]") for (key, value) in self._states_dict.items()} 
+        return props_in_states
+
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
-        updated_model = self._model.updated_model()
+        new_dict = self.reverse_state_dict()
+        print(new_dict)
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
         start = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
+            new_transitions = [[0, 1, ["hei", "*"], 1], [0, 1, ["hå", "*"], 1]]
+            updated_model = self._model.updated_model(new_transitions)
             print("denne+: ", self._formula_obj.upgrades)
             result = {0} # skal returnere updated model
-            # må sjekke at den er clash-free, kan man måtte legge til flere verdener eller skal det være error på dette og? 
             # må generere updated model, init model + ekstra transitions
-            
         elif self._formula_obj.upgradeType == UpgradeType.N:
-            # må sjekke at den er clash-free, kan man måtte legge til flere verdener eller skal det være error på dette og? 
             # må generere updated model, init model - transitions
             print("denne-: ", self._formula_obj.upgrades)
             result = {0} # skal returnere updated model
+
         # verifisere som i next operator men gå fra init modell til updated modell
         end = time.process_time()
 
         return 0 in result, end - start, result
-
-
-    
 
     def verify_domino(self):
         agent_id = self.get_agent()
