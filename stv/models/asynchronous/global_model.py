@@ -878,25 +878,53 @@ class GlobalModel:
 
         return 0 in result, end - start, result, atl_model.strategy
 
-    def clashfree(self): # checks if the updates clashes or not
+    def parse_prop(self):
+        """Returns propositions in from_states and propositions in to_states into dict with boolean value for the prop stated in the list. 
+           Same structure as in list as in the first element in the from_states belongs to the first element in the to_states. """
+        from_states, _, to_states = self.parse_upgrade()
+        prop_from_states = {}
+        prop_to_states = {}
+        for element in from_states:
+            if "!" in element:
+                prop_from_states[element[1]] = False
+            else:
+                prop_from_states[element] = True
+        for element in to_states:
+            if "!" in element:
+                prop_to_states[element[1]] = False
+            else:
+                prop_to_states[element] = True
+        return prop_from_states, prop_to_states
+
+    def parse_upgrade(self):
+        """function for dividing upgrades into three lists, from_states, agents and to_states which are returned."""
         upgrades = self._formula_obj.upgrades
-        print("upgrades", upgrades)
         if len(upgrades) % 4 != 0:
             print("ERROR: Something is wrong with the updates")
             return False
         else: 
+            print("upgrades", upgrades)
             indexes = []
             from_states = []
             agents = []
+            to_states = []
             for element in upgrades:
                 indexes.append(upgrades.index(element))
             c = 0
             while c < len(indexes):
                 if c % 4 == 0:
-                    from_states.append(indexes[c])
+                    from_states.append(upgrades[c])
                 elif c % 4 == 1:
-                    agents.append(indexes[c]) 
+                    agents.append(upgrades[c]) 
+                elif c % 4 == 2:
+                    to_states.append(upgrades[c])
                 c += 1
+            print("from parse_upgrade", from_states, agents, to_states)
+            return from_states, agents, to_states
+
+    def clashfree(self): # checks if the updates clashes or not
+            from_states, agents, to_states = self.parse_upgrade()
+            print("from clashfree function", from_states, agents, to_states)
             if len(set(agents)) == 1: # if only one agent is granted superpowers.
                 return True
             elif len(set(agents)) > 1 and len(set(from_states)) != len(from_states): # if there is more then one superpower out of the same state and more then one agent who is granted superpowers.
@@ -904,35 +932,41 @@ class GlobalModel:
             else: 
                 return True
 
-    def reverse_state_dict(self):
-        # changes keys to values and opisite, new value is only propositions.
-        print(self._states_dict)
-        props_in_states = {value:key.split("[")[2].strip("]") for (key, value) in self._states_dict.items()} 
-        return props_in_states
-
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
-        new_dict = self.reverse_state_dict()
-        print(new_dict)
+        prop_from_states, prop_to_states = self.parse_prop()
+        print("these guys", prop_from_states, prop_to_states)
+        halla = self.get_upgrade_winning_states(prop_from_states)
+        print("denne her her den ekte", halla)
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
         start = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
-            new_transitions = [[0, 1, ["hei", "*"], 1], [0, 1, ["hå", "*"], 1]]
+            new_transitions = [[0, 1, ["hei", "nact3_b"], 1], [0, 1, ["hå", "nact3_b"], 1]]
             updated_model = self._model.updated_model(new_transitions)
-            print("denne+: ", self._formula_obj.upgrades)
             result = {0} # skal returnere updated model
             # må generere updated model, init model + ekstra transitions
         elif self._formula_obj.upgradeType == UpgradeType.N:
             # må generere updated model, init model - transitions
-            print("denne-: ", self._formula_obj.upgrades)
             result = {0} # skal returnere updated model
 
         # verifisere som i next operator men gå fra init modell til updated modell
         end = time.process_time()
 
         return 0 in result, end - start, result
+
+    def get_upgrade_winning_states(self, expr) -> List[int]:
+        """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""
+        result = []
+        for key, value in expr.items():
+            for state in self._states:
+                print(state.props.items())
+                if (key, value) in state.props.items():
+                    print("jippi")
+                    result.append(state.id)
+        print(result)
+        return result
 
     def verify_domino(self):
         agent_id = self.get_agent()
