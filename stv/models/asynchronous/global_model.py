@@ -878,23 +878,18 @@ class GlobalModel:
 
         return 0 in result, end - start, result, atl_model.strategy
 
-    def parse_prop(self):
+    def parse_prop(self, prop):
         """Returns propositions in from_states and propositions in to_states into dict with boolean value for the prop stated in the list. 
            Same structure as in list as in the first element in the from_states belongs to the first element in the to_states. """
-        from_states, _, to_states = self.parse_upgrade()
-        prop_from_states = {}
-        prop_to_states = {}
-        for element in from_states:
-            if "!" in element:
-                prop_from_states[element[1]] = False
-            else:
-                prop_from_states[element] = True
-        for element in to_states:
-            if "!" in element:
-                prop_to_states[element[1]] = False
-            else:
-                prop_to_states[element] = True
-        return prop_from_states, prop_to_states
+        result = {}
+        #for element in prop:
+        if "!" in prop:
+            result.update({prop[1]: False})
+                #prop_from_states[element[1]] = False
+        else:
+            result.update({prop: True })
+                #prop_from_states[element] = True
+        return result
 
     def parse_upgrade(self):
         """function for dividing upgrades into three lists, from_states, agents and to_states which are returned."""
@@ -907,6 +902,7 @@ class GlobalModel:
             indexes = []
             from_states = []
             agents = []
+            agents_id_dict = {}
             to_states = []
             for element in upgrades:
                 indexes.append(upgrades.index(element))
@@ -919,12 +915,15 @@ class GlobalModel:
                 elif c % 4 == 2:
                     to_states.append(upgrades[c])
                 c += 1
-            print("from parse_upgrade", from_states, agents, to_states)
-            return from_states, agents, to_states
+            counter = 0
+            while counter < len(agents):
+                agents_id_dict[self._local_models[counter].agent_name] = counter
+                counter += 1
+            print("from parse_upgrade", from_states, agents, to_states, agents_id_dict)
+            return from_states, agents, to_states, agents_id_dict
 
     def clashfree(self): # checks if the updates clashes or not
-            from_states, agents, to_states = self.parse_upgrade()
-            print("from clashfree function", from_states, agents, to_states)
+            from_states, agents, to_states, _ = self.parse_upgrade()
             if len(set(agents)) == 1: # if only one agent is granted superpowers.
                 return True
             elif len(set(agents)) > 1 and len(set(from_states)) != len(from_states): # if there is more then one superpower out of the same state and more then one agent who is granted superpowers.
@@ -932,19 +931,38 @@ class GlobalModel:
             else: 
                 return True
 
+    def positive_transitions(self, from_states, to_states, agents, agents_id_dict):
+        new_transitions = []
+        actions = []
+        for agent in agents: 
+            if agents_id_dict.get(agent) == 0:
+                actions.append(["dict_powers", "-"])
+            elif agents_id_dict.get(agent) == 1:
+                actions.append(["-","dict_powers"])
+            else:
+                print("Only works when two agents")
+        print("actions_", actions)
+        counter = 0
+        while counter < len(from_states):
+            new_transitions.append([from_states[counter], to_states[counter], actions[counter]])
+            counter += 1
+        return new_transitions
+
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
-        prop_from_states, prop_to_states = self.parse_prop()
-        print("these guys", prop_from_states, prop_to_states)
-        halla = self.get_upgrade_winning_states(prop_from_states)
-        print("denne her her den ekte", halla)
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
         start = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
-            new_transitions = [[0, 1, ["hei", "nact3_b"], 1], [0, 1, ["hå", "nact3_b"], 1]]
+            print("agent: ", self.get_agent())
+            print(self._local_models[0].agent_name)
+            _, agents, _, agents_id_dict = self.parse_upgrade()
+            result_from_states, result_to_states = self.get_upgrade_winning_states()
+            new_transitions = self.positive_transitions(result_from_states, result_to_states, agents, agents_id_dict)
+            print(self.get_actions())
             updated_model = self._model.updated_model(new_transitions)
+            print(self._local_models[0].actions)
             result = {0} # skal returnere updated model
             # må generere updated model, init model + ekstra transitions
         elif self._formula_obj.upgradeType == UpgradeType.N:
@@ -956,17 +974,26 @@ class GlobalModel:
 
         return 0 in result, end - start, result
 
-    def get_upgrade_winning_states(self, expr) -> List[int]:
+    def get_upgrade_winning_states(self) -> List[int]:
         """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""
-        result = []
-        for key, value in expr.items():
-            for state in self._states:
-                print(state.props.items())
-                if (key, value) in state.props.items():
-                    print("jippi")
-                    result.append(state.id)
-        print(result)
-        return result
+        result_from_states = []
+        result_to_states = []
+        from_states, _, to_states, _ = self.parse_upgrade()
+        for state in from_states:
+            state_dict = self.parse_prop(state)
+            for key, value in state_dict.items():
+                for state in self._states:
+                    if (key, value) in state.props.items():
+                        result_from_states.append(state.id)
+        for state in to_states:
+            state_dict = self.parse_prop(state)
+            for key, value in state_dict.items():
+                for state in self._states:
+                    if (key, value) in state.props.items():
+                        result_to_states.append(state.id)
+        print(from_states, to_states)
+        print("dette er resultatet:", result_from_states, result_to_states)
+        return result_from_states, result_to_states
 
     def verify_domino(self):
         agent_id = self.get_agent()
@@ -982,7 +1009,7 @@ class GlobalModel:
         actions = []
         for local in self._local_models:
             actions.append(local.actions)
-            actions[-1].add("")
+            #actions[-1].add("")
         return actions
 
     def get_fake_formula_winning_states(self, revote: int, cand: int):
