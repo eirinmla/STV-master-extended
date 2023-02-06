@@ -10,9 +10,10 @@ Agent b:
 init: state1
 nact1: state1 -> state1
 nact2: state2 -> state2
+dictatorial: state2 -> state1 [p = False]
 
 PERSISTENT: [p]
 INITIAL: [p = False]
 COALITION: [a]
 LOGIC: UCL
-FORMULA: [(!p, b, p)+, (p, a, p)+]<<b>>(p=True) 
+FORMULA: [(p, a, p)+]<<a>>(p=True) 

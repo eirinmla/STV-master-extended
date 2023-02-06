@@ -948,30 +948,37 @@ class GlobalModel:
             counter += 1
         return new_transitions
 
-    def verify_approximation_ucl(self):
-        init_model = self._model.to_atl_perfect()
-        winning_states = set(self.get_formula_winning_states())
-        coalition = self.agent_name_coalition_to_ids(self._coalition)
-        result = []
-        start = time.process_time()
+    def updating_model(self):
         if self._formula_obj.upgradeType == UpgradeType.P:
             print("agent: ", self.get_agent())
             print(self._local_models[0].agent_name)
             _, agents, _, agents_id_dict = self.parse_upgrade()
             result_from_states, result_to_states = self.get_upgrade_winning_states()
             new_transitions = self.positive_transitions(result_from_states, result_to_states, agents, agents_id_dict)
-            print(self.get_actions())
+            print("heihei", self.get_actions())
             updated_model = self._model.updated_model(new_transitions)
+            print("heihei", self.get_actions())
             print(self._local_models[0].actions)
-            result = {0} # skal returnere updated model
-            # må generere updated model, init model + ekstra transitions
+            print(self.transitions_count)
+            print(self._formula_obj.agents)
         elif self._formula_obj.upgradeType == UpgradeType.N:
-            # må generere updated model, init model - transitions
-            result = {0} # skal returnere updated model
+            pass
+        return updated_model
 
-        # verifisere som i next operator men gå fra init modell til updated modell
+    def verify_approximation_ucl(self):
+        init_model = self._model.to_atl_perfect()
+        updated_model = self.updating_model()
+        for state in self._states:
+            for e in self._available_transitions_in_state_for_agent(state, 0):
+                print(e)
+        winning_states = set(self.get_formula_winning_states())
+        coalition = self.agent_name_coalition_to_ids(self._coalition)
+        anchor_states_id = [0]
+        result = []
+        start = time.process_time()
         end = time.process_time()
-
+        if self._formula_obj.upgradeType == UpgradeType.P:
+            result = updated_model.ucl_next(coalition, winning_states, anchor_states_id)
         return 0 in result, end - start, result
 
     def get_upgrade_winning_states(self) -> List[int]:

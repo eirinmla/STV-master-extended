@@ -347,6 +347,28 @@ class ATLIrModel:
         return result_states
 
 
+    def ucl_next(self, agent_ids: List[int], winning_states: Set[int], anchor_states_id: List[int]) -> Set[int]:
+        result_states = self.prepare_result_states(winning_states)
+        result_states_length = len(result_states)
+        current_states = winning_states.copy()
+        current_state = set()
+        for elm in current_states: #only checking the nearest true state
+            if len(current_state) < 1:
+                current_state.add(elm)
+            if len(current_state) >= 1:
+                break
+        is_winning_state = self.marked_winning_states(current_state)
+        self.strategy = [None for _ in range(self.number_of_states)]
+        while True:
+            current_state = self.basic_formula_many_agents(agent_ids, current_state, is_winning_state)
+            result_states.update(current_state)
+            if result_states_length == len(result_states):
+                break
+
+            result_states_length = len(result_states)
+        print(result_states)
+        return result_states
+
     def maximum_formula_many_agents(self, agent_ids: List[int], winning_states: Set[int]) -> Set[int]: # GLOBAL-operator 
         result_states = self.prepare_result_states(winning_states)
         result_states_length = len(result_states)

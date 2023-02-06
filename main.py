@@ -115,7 +115,7 @@ def ucl():
     start = time.process_time()
     model.generate(reduction=False)
     end = time.process_time()
-    # må sjekke at den er clash-free, kan man måtte legge til flere verdener eller skal det være error på dette og? 
+    # må sjekke at den er clash-free, kan man måtte legge til flere verdener skal være error på dette og
     if not model.clashfree(): 
         print("ERROR: The updates are clashing.")
     else: 

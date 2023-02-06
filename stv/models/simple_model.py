@@ -268,10 +268,12 @@ class SimpleModel:
         transitions as list will be in the form [[from state, to state, actions(list)],[...]]
         :return: ATLIr model
         """
-        updated_model = ATLIrModel(self._no_agents)
+        #updated_model = ATLIrModel(self._no_agents)
         for transition in new_transitions:
             self.add_transition(transition[0], transition[1], transition[2])
+        updated_model = ATLIrModel(self._no_agents)
         updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
+        print(self._actions)
         ATLIrModel.print_model(updated_model) # only a print
         return updated_model
 
@@ -459,7 +461,7 @@ class SimpleModel:
     def dump_transitions_for_coalition(self, agents_id: List[int]) -> str:
         actions_dict = dict()
         action_ind = 0
-        # actions_dict[tuple(["" for _ in agents_id])] = 0
+        #actions_dict[tuple(["" for _ in agents_id])] = 0
         actions_dict[tuple(["*" for _ in agents_id])] = -1
         # action_ind += 1
         result = f"{self._no_transitions}\n"
