@@ -1,0 +1,8 @@
+Fjernet fra global_model.py mellom linje 474 og 475 for at alle props skal være med i dict selv om de er false.
+
+
+elif type(val) is bool:
+                if not val:
+                    state.remove_prop(prop)
+                else:
+                    state.set_prop(prop, val)

@@ -446,7 +446,6 @@ class GlobalModel:
     def _copy_props_to_state(self, state: GlobalState, transition: LocalTransition) -> GlobalState:
         for prop in transition.props:
             op, val = transition.props[prop]
-
             self._check_bounded_vars(prop, val)
 
             if type(val) is str:
@@ -471,11 +470,6 @@ class GlobalModel:
                 if op == "+":
                     prop_val = state.props[val]
                     state.change_prop(prop, prop_val)
-            elif type(val) is bool:
-                if not val:
-                    state.remove_prop(prop)
-                else:
-                    state.set_prop(prop, val)
             elif type(val) is int:
                 if op == "+":
                     state.change_prop(prop, val)
@@ -902,7 +896,6 @@ class GlobalModel:
             indexes = []
             from_states = []
             agents = []
-            agents_id_dict = {}
             to_states = []
             for element in upgrades:
                 indexes.append(upgrades.index(element))
@@ -915,15 +908,19 @@ class GlobalModel:
                 elif c % 4 == 2:
                     to_states.append(upgrades[c])
                 c += 1
-            counter = 0
-            while counter < len(agents):
-                agents_id_dict[self._local_models[counter].agent_name] = counter
-                counter += 1
-            print("from parse_upgrade", from_states, agents, to_states, agents_id_dict)
-            return from_states, agents, to_states, agents_id_dict
+            print("from parse_upgrade", from_states, agents, to_states)
+            return from_states, agents, to_states
+
+    def agents_to_dict(self):
+        agents_id_dict = {}
+        counter = 0
+        while counter < 2:
+            agents_id_dict[self._local_models[counter].agent_name] = counter
+            counter += 1
+        return agents_id_dict
 
     def clashfree(self): # checks if the updates clashes or not
-            from_states, agents, to_states, _ = self.parse_upgrade()
+            from_states, agents, to_states = self.parse_upgrade()
             if len(set(agents)) == 1: # if only one agent is granted superpowers.
                 return True
             elif len(set(agents)) > 1 and len(set(from_states)) != len(from_states): # if there is more then one superpower out of the same state and more then one agent who is granted superpowers.
@@ -935,11 +932,13 @@ class GlobalModel:
         new_transitions = []
         actions = []
         for agent in agents: 
+            print(agents_id_dict.get(agent))
             if agents_id_dict.get(agent) == 0:
                 actions.append(["dict_powers", "-"])
             elif agents_id_dict.get(agent) == 1:
                 actions.append(["-","dict_powers"])
             else:
+                actions.append(["-","-"])
                 print("Only works when two agents")
         print("actions_", actions)
         counter = 0
@@ -952,15 +951,12 @@ class GlobalModel:
         if self._formula_obj.upgradeType == UpgradeType.P:
             print("agent: ", self.get_agent())
             print(self._local_models[0].agent_name)
-            _, agents, _, agents_id_dict = self.parse_upgrade()
+            _, agents, _ = self.parse_upgrade()
+            agents_id_dict = self.agents_to_dict()
             result_from_states, result_to_states = self.get_upgrade_winning_states()
             new_transitions = self.positive_transitions(result_from_states, result_to_states, agents, agents_id_dict)
-            print("heihei", self.get_actions())
+            print(new_transitions)
             updated_model = self._model.updated_model(new_transitions)
-            print("heihei", self.get_actions())
-            print(self._local_models[0].actions)
-            print(self.transitions_count)
-            print(self._formula_obj.agents)
         elif self._formula_obj.upgradeType == UpgradeType.N:
             pass
         return updated_model
@@ -968,9 +964,6 @@ class GlobalModel:
     def verify_approximation_ucl(self):
         init_model = self._model.to_atl_perfect()
         updated_model = self.updating_model()
-        for state in self._states:
-            for e in self._available_transitions_in_state_for_agent(state, 0):
-                print(e)
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         anchor_states_id = [0]
@@ -985,21 +978,32 @@ class GlobalModel:
         """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""
         result_from_states = []
         result_to_states = []
-        from_states, _, to_states, _ = self.parse_upgrade()
-        for state in from_states:
-            state_dict = self.parse_prop(state)
-            for key, value in state_dict.items():
-                for state in self._states:
-                    if (key, value) in state.props.items():
-                        result_from_states.append(state.id)
-        for state in to_states:
-            state_dict = self.parse_prop(state)
-            for key, value in state_dict.items():
-                for state in self._states:
-                    if (key, value) in state.props.items():
-                        result_to_states.append(state.id)
+        from_states, _, to_states = self.parse_upgrade()
         print(from_states, to_states)
-        print("dette er resultatet:", result_from_states, result_to_states)
+        for state in from_states:
+            temp_list = []
+            state_dict = self.parse_prop(state)
+            for key, value in state_dict.items():
+                print(key, value)
+                for state in self._states:
+                    if (key, value) in state.props.items():
+                        temp_list.append(state.id)
+            result_from_states.append(temp_list)
+        for state in to_states:
+            temp_list1 = []
+            state_dict = self.parse_prop(state)
+            for key, value in state_dict.items():
+                print(key, value)
+                for state in self._states:
+                    print(state.props.items())
+                    for item in state.props.items():
+                        print("printing item",item)
+                        if (key, value) == item:
+                            print(state.id)
+                            temp_list1.append(state.id)
+            result_to_states.append(temp_list1)
+        print(from_states, to_states)
+        print("dette er resultatet:", result_from_states, "halla", result_to_states)
         return result_from_states, result_to_states
 
     def verify_domino(self):
