@@ -1,0 +1,21 @@
+SEMANTICS: synchronous
+
+Agent Alice:
+init: hold
+act: hold -> state2 [q=True]
+nact: hold -> hold
+nact: state2 -> state2 
+nact: state3 -> state3
+
+Agent Bob:
+init: hold
+nact: hold -> hold
+nact: state2 -> state2 
+act: hold -> state3 [p=True]
+nact: state3 -> state3
+
+PERSISTENT: [p, q]
+INITIAL: [p = False, q = False]
+COALITION: [Alice]
+LOGIC: UCL
+FORMULA: [(!p, Alice, p)+]<<Alice>>(p = True)

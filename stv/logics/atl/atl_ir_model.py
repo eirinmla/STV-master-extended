@@ -359,8 +359,10 @@ class ATLIrModel:
                 break
         is_winning_state = self.marked_winning_states(current_state)
         self.strategy = [None for _ in range(self.number_of_states)]
+        print(self.strategy)
         while True:
             current_state = self.basic_formula_many_agents(agent_ids, current_state, is_winning_state)
+            print(current_state)
             result_states.update(current_state)
             if result_states_length == len(result_states):
                 break

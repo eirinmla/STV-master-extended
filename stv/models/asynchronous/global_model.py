@@ -938,13 +938,6 @@ class GlobalModel:
         new_transitions = []
         actions = []
         print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [1])[0][0])
-  #      counter = 0
-  #      while counter < len(agents):
-   #         print(from_states[counter][0])
-    #        if agents_id_dict.get(agents[counter]) == 0:
-     #           actions.append(["dict_powers", self._model.get_possible_strategies_for_coalition(from_states[counter][0], [1])])
-      #      counter +=1
-        #    print(actions)
         for agent in agents: 
             if agents_id_dict.get(agent) == 0:
                 actions.append(["dict_powers", "-"])

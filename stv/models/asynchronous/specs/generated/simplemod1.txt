@@ -2,20 +2,20 @@ SEMANTICS: synchronous
 
 Agent a:
 init: state1
-act1: state1 -> state2 [p=True, q=False]
-nact1: state1 -> state1 
-nact2: state2 -> state2 
-act2: state1 -> state3 [p=True, q=False]
-nact3: state3 -> state3
+act: state1 -> state2 [p=False]
+nact: state1 -> state1 
+nact: state2 -> state2 
+nact: state3 -> state3
 
 Agent b:
 init: state1
-nact1: state1 -> state1 
-nact2: state2 -> state2 
-nact3: state3 -> state3
+nact: state1 -> state1 
+nact: state2 -> state2 
+act: state1 -> state3 [p=True]
+nact: state3 -> state3
 
-PERSISTENT: [p, q]
-INITIAL: [p = False, q = True]
+PERSISTENT: [p]
+INITIAL: [p = True]
 COALITION: [a]
 LOGIC: UCL
-FORMULA: [(!r, a, p)+,(!q, b, !q)+]<<a>>(p = False)
+FORMULA: [(!p, a, p)+]<<a>>(p = True)
