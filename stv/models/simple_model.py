@@ -107,12 +107,15 @@ class SimpleModel:
         :param actions: List of actions for the transition
         :return: None
         """
-        self.resize_to_state(max(from_state_id, to_state_id))
+        if "*" in actions:
+            pass
+        else: 
+            self.resize_to_state(max(from_state_id, to_state_id))
         # if self.is_unique_transition(Transition(to_state_id, actions), from_state_id):
-        self._graph[from_state_id].append(Transition(to_state_id, actions, time))
-        self._pre_image[to_state_id].append(from_state_id)
-        self._no_transitions += 1
-        self._add_actions(actions)
+            self._graph[from_state_id].append(Transition(to_state_id, actions, time))
+            self._pre_image[to_state_id].append(from_state_id)
+            self._no_transitions += 1
+            self._add_actions(actions)
 
     def _add_actions(self, actions: List[str]):
         """

@@ -6,3 +6,13 @@ elif type(val) is bool:
                     state.remove_prop(prop)
                 else:
                     state.set_prop(prop, val)
+
+                
+
+Endret simple_model.py linje 110-112 og indentet det under. - gjort for å fjerne transitions med stjerner i. 
+
+Lagt til         if "*" in actions:
+                    pass
+                else: 
+
+                og indentet alt under
