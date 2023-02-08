@@ -915,13 +915,20 @@ class GlobalModel:
         return agents_id_dict
 
     def clashfree(self): # checks if the updates clashes or not
-            from_states, agents, to_states = self.parse_upgrade()
-            if len(set(agents)) == 1: # if only one agent is granted superpowers.
+            _, agents, _ = self.parse_upgrade()
+            from_states, _ = self.get_upgrade_winning_states()
+            print(from_states)
+            if len(set(agents)) == 1: # checks if only one agent is granted superpowers.
                 return True
-            elif len(set(agents)) > 1 and len(set(from_states)) != len(from_states): # if there is more then one superpower out of the same state and more then one agent who is granted superpowers.
-                return False
-            else: 
-                return True
+            else: # checks if two agents are granted superpowers from the same state.
+                for state in from_states[0]:
+                    print(state)
+                    for s in from_states[1]:
+                        print(s)
+                        if state == s:
+                            return False
+                else:
+                    return True
 
     def positive_transitions(self):
         _, agents, _ = self.parse_upgrade()
@@ -930,6 +937,14 @@ class GlobalModel:
         temp_transitions = []
         new_transitions = []
         actions = []
+        print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [1])[0][0])
+  #      counter = 0
+  #      while counter < len(agents):
+   #         print(from_states[counter][0])
+    #        if agents_id_dict.get(agents[counter]) == 0:
+     #           actions.append(["dict_powers", self._model.get_possible_strategies_for_coalition(from_states[counter][0], [1])])
+      #      counter +=1
+        #    print(actions)
         for agent in agents: 
             if agents_id_dict.get(agent) == 0:
                 actions.append(["dict_powers", "-"])
