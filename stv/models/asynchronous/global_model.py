@@ -982,7 +982,9 @@ class GlobalModel:
         start = time.process_time()
         end = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
-            result = updated_model.ucl_next(coalition, winning_states, anchor_states_id)
+            #result = updated_model.ucl_next(coalition, winning_states, anchor_states_id)    # NEXT
+            result = init_model.minimum_formula_many_agents(coalition, winning_states)      # FUTURE
+            #result = updated_model.maximum_formula_many_agents(coalition, winning_states)   # GLOBAL
         return 0 in result, end - start, result
 
     def get_upgrade_winning_states(self) -> List[int]:
