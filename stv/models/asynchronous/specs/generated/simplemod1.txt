@@ -15,7 +15,7 @@ act: state1 -> state3 [p=True]
 nact: state3 -> state3
 
 PERSISTENT: [p]
-INITIAL: [p = True]
+INITIAL: [p = False]
 COALITION: [a]
 LOGIC: UCL
 FORMULA: [(!p, a, p)+]<<a>>(p = True)

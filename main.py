@@ -110,7 +110,7 @@ def asynchronous(filename):
 @verify.command()
 #@click.option('--filename', default="simple_voting_1v_2c", prompt="Model file name", help="Model file name")
 def ucl():
-    model = GlobalModelParser().parse(f"stv/models/asynchronous/specs/generated/atomic_swap.txt")
+    model = GlobalModelParser().parse(f"stv/models/asynchronous/specs/generated/simplemod1.txt")
 
     start = time.process_time()
     model.generate(reduction=False)

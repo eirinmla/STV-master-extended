@@ -347,28 +347,27 @@ class ATLIrModel:
         return result_states
 
 
-    def ucl_next(self, agent_ids: List[int], winning_states: Set[int], anchor_states_id: List[int]) -> Set[int]:
-        result_states = self.prepare_result_states(winning_states)
-        result_states_length = len(result_states)
-        current_states = winning_states.copy()
-        current_state = set()
-        for elm in current_states: #only checking the nearest true state
-            if len(current_state) < 1:
-                current_state.add(elm)
-            if len(current_state) >= 1:
-                break
-        is_winning_state = self.marked_winning_states(current_state)
+    def ucl_next(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]:
+        is_winning_state = self.marked_winning_states(current_states)
+        result_states = set()
+        pre_image = self.prepare_pre_image(current_states)
+        actions = self.get_agents_actions(agent_ids)
         self.strategy = [None for _ in range(self.number_of_states)]
-        print(self.strategy)
-        while True:
-            current_state = self.basic_formula_many_agents(agent_ids, current_state, is_winning_state)
-            print(current_state)
-            result_states.update(current_state)
-            if result_states_length == len(result_states):
-                break
+        for state_id in pre_image:
+            if is_winning_state[state_id]:
+                result_states.add(state_id)
+                continue
 
-            result_states_length = len(result_states)
-        print(result_states)
+            for action in itertools.product(*actions):
+                if action == "*":
+                    continue
+
+                if self.is_reachable_by_agents(agent_ids, state_id, list(action), is_winning_state):
+                    self.strategy[state_id] = list(action)
+                    result_states.add(state_id)
+                    is_winning_state[state_id] = True
+                    break
+
         return result_states
 
     def maximum_formula_many_agents(self, agent_ids: List[int], winning_states: Set[int]) -> Set[int]: # GLOBAL-operator 
