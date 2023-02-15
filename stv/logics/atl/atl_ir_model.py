@@ -349,26 +349,62 @@ class ATLIrModel:
 
     def ucl_next(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]:
         is_winning_state = self.marked_winning_states(current_states)
+        print("is_winning_state", is_winning_state)
         result_states = set()
         pre_image = self.prepare_pre_image(current_states)
+        print("pre_image",pre_image)
         actions = self.get_agents_actions(agent_ids)
-        self.strategy = [None for _ in range(self.number_of_states)]
+        print("actions", actions)
+        self.strategy = [None]
         for state_id in pre_image:
+            print("state_id",state_id)
             if is_winning_state[state_id]:
+                print(is_winning_state[state_id])
+                print("her")
                 result_states.add(state_id)
                 continue
 
             for action in itertools.product(*actions):
+                print("action",action)
                 if action == "*":
                     continue
 
                 if self.is_reachable_by_agents(agent_ids, state_id, list(action), is_winning_state):
+                    # if self.verify_coalition(agent_ids, state_id, list(action), is_winning_state):
                     self.strategy[state_id] = list(action)
+                    print("strategy",self.strategy)
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
+                    print("result_states",result_states)
                     break
-
+        print("result_state_nede",result_states)
         return result_states
+
+    def verify_coalition(self, agent_ids: List[int], state_id: int, actions: List[str],
+                               is_winning_state: List[bool]):
+        """returns boolean value: can the coalition force the outcome or not"""
+        print("verify_coalition", agent_ids, state_id, actions, is_winning_state)
+        if len(agent_ids) == self.number_of_agents:  # if all agents in model are in the coalition
+            return True
+        elif "dict_powers" in actions:  # if used action is dict_powers
+            return True
+        complement_of_coalition = list(range(self.number_of_agents))  # all agents in the model that is not in the coalition
+        for element in agent_ids:
+            complement_of_coalition.remove(element)
+        print(complement_of_coalition)
+        print("actions som er utenfor coalition:", self.get_agents_actions(complement_of_coalition))  # hvordan bestemmer man egentlig om coalition kan tvinge gjennom eller ei? 
+        comp_act = self.get_agents_actions(complement_of_coalition)
+        print(comp_act)
+        print(complement_of_coalition)
+        print(state_id)
+        print(is_winning_state)
+        temp_comp = []
+        for element in comp_act:
+            for el in element: 
+                temp_comp.append(el)
+        print("denne her", self.is_reachable_by_agents(complement_of_coalition, state_id, temp_comp, is_winning_state))
+        print(self._transitions[0][0])
+        return True
 
     def maximum_formula_many_agents(self, agent_ids: List[int], winning_states: Set[int]) -> Set[int]: # GLOBAL-operator 
         result_states = self.prepare_result_states(winning_states)
@@ -414,6 +450,7 @@ class ATLIrModel:
         return result_states
 
     def prepare_pre_image(self, states: Set[int]) -> Set[int]:
+        """predecessor for transitions to states which is winning states"""
         pre_image = set()
         for state_id in states:
             pre_image = pre_image.union(self.pre_states[state_id])
