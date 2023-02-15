@@ -435,7 +435,7 @@ class ATLIrModel:
             if self._opponent_reactiveness and transition.actions[-1] == "epsilon":
                 continue
             for agent_id, action in zip(agent_ids, actions):
-                if transition.actions[agent_id] != action and action != "*":
+                if transition.actions[agent_id] != action and action != "*" and action != "-":
                     is_good_transition = False
                     break
             if is_good_transition:

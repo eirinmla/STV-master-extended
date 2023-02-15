@@ -2,17 +2,14 @@ SEMANTICS: synchronous
 
 Agent a:
 init: state1
-act: state1 -> state2 [p=False]
 nact: state1 -> state1 
 nact: state2 -> state2 
-nact: state3 -> state3
 
 Agent b:
 init: state1
 nact: state1 -> state1 
 nact: state2 -> state2 
-act: state1 -> state3 [p=True]
-nact: state3 -> state3
+act: state1 -> state2 [p=True]
 
 PERSISTENT: [p]
 INITIAL: [p = False]
