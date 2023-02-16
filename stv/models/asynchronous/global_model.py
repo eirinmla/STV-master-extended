@@ -917,15 +917,23 @@ class GlobalModel:
     def clashfree(self): # checks if the updates clashes or not
             _, agents, _ = self.parse_upgrade()
             from_states, _ = self.get_upgrade_winning_states()
-            print(from_states)
+            temp_dict = {}
+            unique_agents = list(set(agents))
+            count = 0
+            for element in from_states:
+                if agents[count] in temp_dict.keys():
+                    for el in element:
+                        temp_dict[agents[count]].append(el)
+                else: 
+                    temp_dict[agents[count]] = element
+                count += 1
             if len(set(agents)) == 1: # checks if only one agent is granted superpowers.
                 return True
             else: # checks if two agents are granted superpowers from the same state.
-                for state in from_states[0]:
-                    print(state)
-                    for s in from_states[1]:
-                        print(s)
-                        if state == s:
+                for value in temp_dict[unique_agents[0]]:
+                    for val in temp_dict[unique_agents[1]]:
+                        if value == val:
+                            print(temp_dict)
                             return False
                 else:
                     return True
@@ -977,13 +985,12 @@ class GlobalModel:
         updated_model = self.updating_model()
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
-        anchor_states_id = [0]
         result = []
         start = time.process_time()
         end = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
-            #result = init_model.ucl_next(coalition, winning_states)                          # NEXT
-            result = updated_model.ucl_next(coalition, winning_states)                      # NEXT
+            result = init_model.ucl_next(coalition, winning_states)                          # NEXT
+            #result = updated_model.ucl_next(coalition, winning_states)                      # NEXT
             #result = init_model.minimum_formula_many_agents(coalition, winning_states)      # FUTURE
             #result = updated_model.minimum_formula_many_agents(coalition, winning_states)   # FUTURE
             #result = init_model.maximum_formula_many_agents(coalition, winning_states)      # GLOBAL
