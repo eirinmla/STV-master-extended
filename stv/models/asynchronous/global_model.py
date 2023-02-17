@@ -945,10 +945,13 @@ class GlobalModel:
         temp_transitions = []
         new_transitions = []
         actions = []
-        print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [1])[0][0])
+        print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [1]))
         for agent in agents: 
+            temp_list = []
             if agents_id_dict.get(agent) == 0:
-                actions.append(["dict_powers", "-"])
+                for element in self._model.get_possible_strategies_for_coalition(0, [1]):
+                    temp_list.append(["dict_powers", element[0]])
+                actions.append(temp_list)
             elif agents_id_dict.get(agent) == 1:
                 actions.append(["-","dict_powers"])
             else:
@@ -966,8 +969,9 @@ class GlobalModel:
             cart_of_states_per_agent.append(cart_of_states)
         counter = 0
         while counter < len(actions):
-            for element in cart_of_states_per_agent[counter]:
-                new_transitions.append([element, actions[counter]])
+            for el in actions[0]:
+                for element in cart_of_states_per_agent[counter]:
+                    new_transitions.append([element, el])
             counter += 1
         return new_transitions
 
@@ -989,13 +993,13 @@ class GlobalModel:
         start = time.process_time()
         end = time.process_time()
         if self._formula_obj.upgradeType == UpgradeType.P:
-            result = init_model.ucl_next(coalition, winning_states)                          # NEXT
-            #result = updated_model.ucl_next(coalition, winning_states)                      # NEXT
+            #result = init_model.ucl_next(coalition, winning_states)                          # NEXT
+            result = updated_model.ucl_next(coalition, winning_states)                      # NEXT
             #result = init_model.minimum_formula_many_agents(coalition, winning_states)      # FUTURE
             #result = updated_model.minimum_formula_many_agents(coalition, winning_states)   # FUTURE
             #result = init_model.maximum_formula_many_agents(coalition, winning_states)      # GLOBAL
-            #result = updated_model.maximum_formula_many_agents(coalition, winning_states)   # GLOBAL
-        return 0 in result, end - start, result
+            #result = updated_model.maximum_formula_many_agents(coalition, winning_states)   # GLOBAL  
+        return 0 in result, end - start, result, updated_model.strategy
 
     def get_upgrade_winning_states(self) -> List[int]:
         """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""

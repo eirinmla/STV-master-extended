@@ -13,6 +13,6 @@ act: state1 -> state2 [p=True]
 
 PERSISTENT: [p]
 INITIAL: [p = False]
-COALITION: [a]
+COALITION: [b]
 LOGIC: UCL
-FORMULA: [(!p, a, p)+, (p, b, !p)+]<<a>>(p = True)
+FORMULA: [(!p, a, p)+]<<b>>(p = False)

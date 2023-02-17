@@ -321,7 +321,7 @@ class ATLIrModel:
                 break
 
             result_states_length = len(result_states)
-
+        print(self.strategy)
         return result_states
 
     def next_formula_many_agents(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]: # NEXT-operator
@@ -360,11 +360,10 @@ class ATLIrModel:
         self.strategy = [None]
         for state_id in pre_image:
             print("state_id",state_id)
-            if is_winning_state[state_id]:
-                print(is_winning_state[state_id])
-                print("her")
-                result_states.add(state_id)
-                continue
+            #if is_winning_state[state_id]:             Kommentert ut på grunn av at det kun er et state man skal videre og fordi det ikke er mulig å ikke gjøre et valg
+            #    print(is_winning_state[state_id])
+             #   result_states.add(state_id)
+              #  continue
 
             for action in itertools.product(*actions):
                 print("action",action)
@@ -372,41 +371,14 @@ class ATLIrModel:
                     continue
 
                 if self.is_reachable_by_agents(agent_ids, state_id, list(action), is_winning_state):
-                    # if self.verify_coalition(agent_ids, state_id, list(action), is_winning_state):
                     self.strategy[state_id] = list(action)
                     print("strategy",self.strategy)
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
                     print("result_states",result_states)
                     break
-        print("result_state_nede",result_states)
+        print(self.strategy)        
         return result_states
-
-    def verify_coalition(self, agent_ids: List[int], state_id: int, actions: List[str],
-                               is_winning_state: List[bool]):
-        """returns boolean value: can the coalition force the outcome or not"""
-        print("verify_coalition", agent_ids, state_id, actions, is_winning_state)
-        if len(agent_ids) == self.number_of_agents:  # if all agents in model are in the coalition
-            return True
-        elif "dict_powers" in actions:  # if used action is dict_powers
-            return True
-        complement_of_coalition = list(range(self.number_of_agents))  # all agents in the model that is not in the coalition
-        for element in agent_ids:
-            complement_of_coalition.remove(element)
-        print(complement_of_coalition)
-        print("actions som er utenfor coalition:", self.get_agents_actions(complement_of_coalition))  # hvordan bestemmer man egentlig om coalition kan tvinge gjennom eller ei? 
-        comp_act = self.get_agents_actions(complement_of_coalition)
-        print(comp_act)
-        print(complement_of_coalition)
-        print(state_id)
-        print(is_winning_state)
-        temp_comp = []
-        for element in comp_act:
-            for el in element: 
-                temp_comp.append(el)
-        print("denne her", self.is_reachable_by_agents(complement_of_coalition, state_id, temp_comp, is_winning_state))
-        print(self._transitions[0][0])
-        return True
 
     def maximum_formula_many_agents(self, agent_ids: List[int], winning_states: Set[int]) -> Set[int]: # GLOBAL-operator 
         result_states = self.prepare_result_states(winning_states)
