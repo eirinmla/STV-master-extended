@@ -946,30 +946,43 @@ class GlobalModel:
         new_transitions = []
         actions = []
         print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [1]))
+        print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [0]))
         for agent in agents: 
             temp_list = []
+            print(agent, agents_id_dict.get(agent))
             if agents_id_dict.get(agent) == 0:
                 for element in self._model.get_possible_strategies_for_coalition(0, [1]):
                     temp_list.append(["dict_powers", element[0]])
                 actions.append(temp_list)
             elif agents_id_dict.get(agent) == 1:
-                actions.append(["-","dict_powers"])
+                for element in self._model.get_possible_strategies_for_coalition(1, [0]):
+                    temp_list.append([element[0],"dict_powers"])
+                actions.append(temp_list)
             else:
                 actions.append(["-","-"])
                 print("Only works when two agents")
+            print("temp_list", temp_list)
+        print(actions)
+
         counter = 0
         while counter < len(from_states):
             temp_transitions.append([from_states[counter], to_states[counter]])
             counter += 1
+        print("temp:",temp_transitions)
+
         cart_of_states_per_agent = []
+        print(len(temp_transitions))
         for element in temp_transitions:
+            print("element:", element)
             cart_of_states = []
             for el in itertools.product(*element):
                 cart_of_states.append(el)
             cart_of_states_per_agent.append(cart_of_states)
+            print(cart_of_states_per_agent)
         counter = 0
-        while counter < len(actions):
-            for el in actions[0]:
+        for e in actions:
+            for el in e:
+                print("e", e)
                 for element in cart_of_states_per_agent[counter]:
                     new_transitions.append([element, el])
             counter += 1
@@ -978,7 +991,7 @@ class GlobalModel:
     def updating_model(self):
         if self._formula_obj.upgradeType == UpgradeType.P:
             new_transitions = self.positive_transitions()
-            print(new_transitions)
+            print("new transitions: ", new_transitions)
             updated_model = self._model.updated_model(new_transitions)
         elif self._formula_obj.upgradeType == UpgradeType.N:
             pass
