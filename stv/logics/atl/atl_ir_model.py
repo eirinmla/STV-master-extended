@@ -346,6 +346,7 @@ class ATLIrModel:
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
                     break
+        print(self.strategy)
         return result_states
 
 
@@ -397,7 +398,7 @@ class ATLIrModel:
                 break
 
             result_states_length = len(result_states)
-
+        print(self.strategy)
         return result_states
 
     def basic_formula_many_agents(self, agent_ids: List[int], current_states: Set[int],
@@ -421,7 +422,7 @@ class ATLIrModel:
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
                     break
-
+        print(self.strategy)
         return result_states
 
     def prepare_pre_image(self, states: Set[int]) -> Set[int]:

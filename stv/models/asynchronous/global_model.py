@@ -882,9 +882,10 @@ class GlobalModel:
             result.update({prop: True })
         return result
 
-    def parse_upgrade(self):
+    def parse_upgrade(self, count):
         """function for dividing upgrades into three lists, from_states, agents and to_states which are returned."""
-        upgrades = self._formula_obj.upgrades
+        upgrades = self._formula_obj.upgrades[count]
+        #print(upgrades)
         if len(upgrades) % 4 != 0:
             print("ERROR: Something is wrong with the updates")
             return False
@@ -915,33 +916,37 @@ class GlobalModel:
         return agents_id_dict
 
     def clashfree(self): # checks if the updates clashes or not
-            _, agents, _ = self.parse_upgrade()
-            from_states, _ = self.get_upgrade_winning_states()
-            temp_dict = {}
-            unique_agents = list(set(agents))
-            count = 0
-            for element in from_states:
-                if agents[count] in temp_dict.keys():
-                    for el in element:
-                        temp_dict[agents[count]].append(el)
-                else: 
-                    temp_dict[agents[count]] = element
-                count += 1
-            if len(set(agents)) == 1: # checks if only one agent is granted superpowers.
-                return True
-            else: # checks if two agents are granted superpowers from the same state.
-                for value in temp_dict[unique_agents[0]]:
-                    for val in temp_dict[unique_agents[1]]:
-                        if value == val:
-                            print(temp_dict)
-                            return False
-                else:
-                    return True
+            counter = 0
+            while counter < len(self._formula_obj.upgradeType):
+                _, agents, _ = self.parse_upgrade(counter)
+                from_states, _ = self.get_upgrade_winning_states(counter)
+                temp_dict = {}
+                unique_agents = list(set(agents))
+                count = 0
+                for element in from_states:
+                    if agents[count] in temp_dict.keys():
+                        for el in element:
+                            temp_dict[agents[count]].append(el)
+                    else: 
+                        temp_dict[agents[count]] = element
+                    count += 1
+                if len(set(agents)) == 1: # checks if only one agent is granted superpowers.
+                    pass
+                else: # checks if two agents are granted superpowers from the same state.
+                    for value in temp_dict[unique_agents[0]]:
+                        for val in temp_dict[unique_agents[1]]:
+                            if value == val:
+                                print(temp_dict)
+                                return False
+                    else:
+                        pass
+                counter += 1
+            return True
 
-    def positive_transitions(self):
-        _, agents, _ = self.parse_upgrade()
+    def positive_transitions(self, count):
+        _, agents, _ = self.parse_upgrade(count)
         agents_id_dict = self.agents_to_dict()
-        from_states, to_states = self.get_upgrade_winning_states()
+        from_states, to_states = self.get_upgrade_winning_states(count)
         temp_transitions = []
         new_transitions = []
         actions = []
@@ -952,11 +957,11 @@ class GlobalModel:
             print(agent, agents_id_dict.get(agent))
             if agents_id_dict.get(agent) == 0:
                 for element in self._model.get_possible_strategies_for_coalition(0, [1]):
-                    temp_list.append(["dict_powers", element[0]])
+                    temp_list.append([f"dict_powers{count}", element[0]])
                 actions.append(temp_list)
             elif agents_id_dict.get(agent) == 1:
                 for element in self._model.get_possible_strategies_for_coalition(1, [0]):
-                    temp_list.append([element[0],"dict_powers"])
+                    temp_list.append([element[0],f"dict_powers{count}"])
                 actions.append(temp_list)
             else:
                 actions.append(["-","-"])
@@ -989,12 +994,15 @@ class GlobalModel:
         return new_transitions
 
     def updating_model(self):
-        if self._formula_obj.upgradeType == UpgradeType.P:
-            new_transitions = self.positive_transitions()
-            print("new transitions: ", new_transitions)
-            updated_model = self._model.updated_model(new_transitions)
-        elif self._formula_obj.upgradeType == UpgradeType.N:
-            pass
+        count = 0 
+        for elm in self._formula_obj.upgradeType:
+            if elm == UpgradeType.P:
+                new_transitions = self.positive_transitions(count)
+                print("new transitions: ", new_transitions)
+                updated_model = self._model.updated_model(new_transitions)
+            elif self._formula_obj.upgradeType == UpgradeType.N:
+                pass
+            count += 1
         return updated_model
 
     def verify_approximation_ucl(self):
@@ -1005,7 +1013,7 @@ class GlobalModel:
         result = []
         start = time.process_time()
         end = time.process_time()
-        if self._formula_obj.upgradeType == UpgradeType.P:
+        if self._formula_obj.upgradeType[0] == UpgradeType.P:
             #result = init_model.ucl_next(coalition, winning_states)                          # NEXT
             result = updated_model.ucl_next(coalition, winning_states)                      # NEXT
             #result = init_model.minimum_formula_many_agents(coalition, winning_states)      # FUTURE
@@ -1014,11 +1022,11 @@ class GlobalModel:
             #result = updated_model.maximum_formula_many_agents(coalition, winning_states)   # GLOBAL  
         return 0 in result, end - start, result, updated_model.strategy
 
-    def get_upgrade_winning_states(self) -> List[int]:
+    def get_upgrade_winning_states(self, count) -> List[int]:
         """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""
         result_from_states = []
         result_to_states = []
-        from_states, _, to_states = self.parse_upgrade()
+        from_states, _, to_states = self.parse_upgrade(count)
         for state in from_states:
             temp_list = []
             state_dict = self.parse_prop(state)

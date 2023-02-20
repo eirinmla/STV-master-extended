@@ -166,34 +166,55 @@ class FormulaParser(Parser):
 
     def __parseFormulaUpgrades(self):
         upgrades = []
-        self.consume("[")
+        self.consume("{")
         while True:
-            res = self.readUntil(["]", ","])
+            res = self.readUntil([",", "}"])
             str = res[0]
             chr = res[1]
             if "(" in str:
-                upgrades.append(str[1:])
+                if "[" in str:
+                    upgrades.append(str[0])
+                    upgrades.append(str[2:])
+                else:  
+                    upgrades.append(str[1:])
             elif ")" in str:
-                upgrades.append(str[:-2])
-                upgrades.append(str[-1])
-                
+                if "]" in str: 
+                    upgrades.append(str[:-3])
+                    upgrades.append(str[-2])
+                    upgrades.append(str[-1])
+                else: 
+                    upgrades.append(str[:-2])
+                    upgrades.append(str[-1])
             else:
                 upgrades.append(str)
-            if chr == "]":
+
+            if chr == "}":
                 break
             else:
                 self.consume(",")
-        self.consume("]")
+        self.consume("}")
+        upgrades_list = []
+        for element in upgrades:
+            if element == "[":
+                temp_list = []
+            if element != "[" and element != "]" and element != "(" and element != ")":
+                temp_list.append(element)
+            if element == "]":
+                upgrades_list.append(temp_list)
+        upgrades = upgrades_list
         return upgrades
     
     def __parseFormulaUpgradeType(self, formula): #  notes if the upgrade is positive or negative, it takes the last sign of the formula which will always be + or -, 
                                                   #  and all updates in the same upgrade is of the same type. 
-        if (formula[-1]) == "+":
-            return UpgradeType.P
-        elif (formula[-1]) == "-":
-            return UpgradeType.N
-        else: 
-            print("There is something wrong with the formula.")
+        upgrade_type_list = []
+        for element in formula: 
+            if (element[-1]) == "+":
+                upgrade_type_list.append(UpgradeType.P)
+            elif (element[-1]) == "-":
+                upgrade_type_list.append(UpgradeType.N)
+            else: 
+                print("There is something wrong with the formula.")
+        return upgrade_type_list
 
     
     def __parseFormulaTemporalOperator(self):
