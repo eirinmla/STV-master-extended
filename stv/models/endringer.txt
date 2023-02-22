@@ -16,3 +16,22 @@ Lagt til         if "*" in actions:
                 else: 
 
                 og indentet alt under
+
+
+
+
+
+
+
+
+
+
+
+
+
+KLADD:
+            #result = init_model.minimum_formula_many_agents(coalition, winning_states)      # FUTURE
+            #result = updated_model.minimum_formula_many_agents(coalition, winning_states)   # FUTURE
+            #result = init_model.maximum_formula_many_agents(coalition, winning_states)      # GLOBAL
+            #result = updated_model.maximum_formula_many_agents(coalition, winning_states)   # GLOBAL  
+        #return 0 in result, end - start, result, updated_model.strategy

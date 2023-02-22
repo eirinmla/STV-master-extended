@@ -950,44 +950,37 @@ class GlobalModel:
         temp_transitions = []
         new_transitions = []
         actions = []
-        print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [1]))
-        print("fra ucl", self._model.get_possible_strategies_for_coalition(0, [0]))
-        for agent in agents: 
+        c = 0 
+        while c < len(from_states):
             temp_list = []
-            print(agent, agents_id_dict.get(agent))
-            if agents_id_dict.get(agent) == 0:
-                for element in self._model.get_possible_strategies_for_coalition(0, [1]):
+            if agents_id_dict.get(agents[c]) == 0:
+                for element in self._model.get_possible_strategies_for_coalition(c, [1]): 
                     temp_list.append([f"dict_powers{count}", element[0]])
                 actions.append(temp_list)
-            elif agents_id_dict.get(agent) == 1:
-                for element in self._model.get_possible_strategies_for_coalition(1, [0]):
+                c += 1
+            elif agents_id_dict.get(agents[c]) == 1:
+                for element in self._model.get_possible_strategies_for_coalition(c, [0]): 
                     temp_list.append([element[0],f"dict_powers{count}"])
                 actions.append(temp_list)
+                c += 1
             else:
                 actions.append(["-","-"])
                 print("Only works when two agents")
-            print("temp_list", temp_list)
-        print(actions)
-
+                c += 1
         counter = 0
         while counter < len(from_states):
             temp_transitions.append([from_states[counter], to_states[counter]])
             counter += 1
-        print("temp:",temp_transitions)
 
         cart_of_states_per_agent = []
-        print(len(temp_transitions))
         for element in temp_transitions:
-            print("element:", element)
             cart_of_states = []
             for el in itertools.product(*element):
                 cart_of_states.append(el)
             cart_of_states_per_agent.append(cart_of_states)
-            print(cart_of_states_per_agent)
         counter = 0
         for e in actions:
             for el in e:
-                print("e", e)
                 for element in cart_of_states_per_agent[counter]:
                     new_transitions.append([element, el])
             counter += 1
@@ -1005,28 +998,31 @@ class GlobalModel:
             count += 1
         return updated_model
 
-    def verify_approximation_ucl(self):
+    def verify_approximation_ucl(self, version):
         init_model = self._model.to_atl_perfect()
         updated_model = self.updating_model()
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
         result = []
         start = time.process_time()
-        end = time.process_time()
+        end = time.process_time() 
         if self._formula_obj.upgradeType[0] == UpgradeType.P:
-            #result = init_model.ucl_next(coalition, winning_states)                          # NEXT
-            result = updated_model.ucl_next(coalition, winning_states)                      # NEXT
-            #result = init_model.minimum_formula_many_agents(coalition, winning_states)      # FUTURE
-            #result = updated_model.minimum_formula_many_agents(coalition, winning_states)   # FUTURE
-            #result = init_model.maximum_formula_many_agents(coalition, winning_states)      # GLOBAL
-            #result = updated_model.maximum_formula_many_agents(coalition, winning_states)   # GLOBAL  
-        return 0 in result, end - start, result, updated_model.strategy
+            if version == "init":
+                result = init_model.ucl_next(coalition, winning_states)      
+                return 0 in result, end - start, result, init_model.strategy
+            elif version == "updated":                      
+                result = updated_model.ucl_next(coalition, winning_states)    
+                return 0 in result, end - start, result, updated_model.strategy                 
+            else:
+                print("try again")
+                return False
 
     def get_upgrade_winning_states(self, count) -> List[int]:
         """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""
         result_from_states = []
         result_to_states = []
         from_states, _, to_states = self.parse_upgrade(count)
+        print(from_states)
         for state in from_states:
             temp_list = []
             state_dict = self.parse_prop(state)

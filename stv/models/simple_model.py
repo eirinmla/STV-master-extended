@@ -276,7 +276,6 @@ class SimpleModel:
             self.add_transition(transition[0][0], transition[0][1], transition[1])
         updated_model = ATLIrModel(self._no_agents)
         updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
-        print(self._actions)
         ATLIrModel.print_model(updated_model) # only a print
         return updated_model
 

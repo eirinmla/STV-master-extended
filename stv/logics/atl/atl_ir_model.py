@@ -333,7 +333,8 @@ class ATLIrModel:
 
         for state_id in pre_image:
             if is_winning_state[state_id]:
-                print(is_winning_state[state_id])
+                pass
+                #print(is_winning_state[state_id])
                 #result_states.add(state_id)
                 #continue
 
@@ -352,31 +353,25 @@ class ATLIrModel:
 
     def ucl_next(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]:
         is_winning_state = self.marked_winning_states(current_states)
-        print("is_winning_state", is_winning_state)
         result_states = set()
         pre_image = self.prepare_pre_image(current_states)
-        print("pre_image",pre_image)
         actions = self.get_agents_actions(agent_ids)
-        print("actions", actions)
         self.strategy = [None for _ in range(self.number_of_states)]
         for state_id in pre_image:
-            print("state_id",state_id)
             if is_winning_state[state_id]:        #     Kommentert ut på grunn av at det kun er et state man skal videre og fordi det ikke er mulig å ikke gjøre et valg
-                print(is_winning_state[state_id])
+                pass
+                #print(is_winning_state[state_id])
                 #result_states.add(state_id)
                 #continue
 
             for action in itertools.product(*actions):
-                print("action",action)
                 if action == "*":
                     continue
 
                 if self.is_reachable_by_agents(agent_ids, state_id, list(action), is_winning_state):
                     self.strategy[state_id] = list(action)
-                    print("strategy",self.strategy)
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
-                    print("result_states",result_states)
                     break
         print(self.strategy)        
         return result_states
@@ -390,7 +385,6 @@ class ATLIrModel:
         while True:
             current_states = self.basic_formula_many_agents(agent_ids, current_states, is_winning_state)
             to_remove = result_states.difference(current_states)
-            print(result_states, current_states, to_remove)
             for state_id in to_remove:
                 is_winning_state[state_id] = False
             result_states.difference_update(to_remove)
@@ -409,7 +403,6 @@ class ATLIrModel:
 
         for state_id in pre_image:
             if is_winning_state[state_id]:
-                print(is_winning_state[state_id])
                 result_states.add(state_id)
                 continue
 
@@ -444,7 +437,6 @@ class ATLIrModel:
                                is_winning_state: List[bool]):
         result = False
         for transition in self.transitions[state_id]:
-            print("transition:", transition)
             is_good_transition = True
             if self._opponent_reactiveness and transition.actions[-1] == "epsilon":
                 continue
