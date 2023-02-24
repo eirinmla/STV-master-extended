@@ -18,4 +18,4 @@ PERSISTENT: [p, q]
 INITIAL: [p = False, q = False]
 COALITION: [Alice]
 LOGIC: UCL
-FORMULA: [(!p, Alice, p)+]<<Alice>>(p = True)
+FORMULA: {[(!p, Alice, p)+]}<<Alice>>(p = True)

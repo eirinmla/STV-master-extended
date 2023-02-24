@@ -943,7 +943,7 @@ class GlobalModel:
                 counter += 1
             return True
 
-    def positive_transitions(self, count):
+    def positive_transitions1(self, count):
         """returns new transitions"""
         from_states, to_states = self.get_upgrade_winning_states(count)
         temp_transitions = []
@@ -953,7 +953,6 @@ class GlobalModel:
         while counter < len(from_states):
             temp_transitions.append([from_states[counter], to_states[counter]])
             counter += 1
-
         cart_of_states_per_agent = []
         for element in temp_transitions:
             cart_of_states = []
@@ -962,10 +961,32 @@ class GlobalModel:
             cart_of_states_per_agent.append(cart_of_states)
         counter = 0
         for e in actions:
-            for el in e:
+            while counter < len(cart_of_states_per_agent):
+            #for e in actions:
+                print("e", e)
+                print(counter)
                 for element in cart_of_states_per_agent[counter]:
-                    new_transitions.append([element, el])
-            counter += 1
+                    for el in e:
+                        for element in cart_of_states_per_agent[counter]:
+                            new_transitions.append([element, el])
+                            print(new_transitions)
+                counter += 1
+        return new_transitions
+
+    def positive_transitions(self, count):
+        """returns new transitions"""
+        from_states, to_states = self.get_upgrade_winning_states(count)
+        new_transitions = []
+        actions = self.positive_action_pairs(count)
+        print(actions)
+        counter = 0
+        print(from_states, to_states)
+        while counter < len(from_states):
+            for element in actions[counter]:
+                for elem in from_states[counter]:
+                    for el in to_states[counter]:
+                        new_transitions.append([(elem, el), element])
+            counter +=1
         return new_transitions
 
     def positive_action_pairs(self, count):
@@ -976,9 +997,9 @@ class GlobalModel:
         action_pairs = []
         c = 0 
         while c < len(from_states):
-            temp_list = []
             if agents_id_dict.get(agents[c]) == 0:
                 for element in from_states[c]:
+                    temp_list = []
                     for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
                         temp_list.append([f"dict_powers{count}", el[0]])
                     action_pairs.append(temp_list)
@@ -987,7 +1008,7 @@ class GlobalModel:
                 for element in from_states[c]:
                     for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
                         temp_list.append([el[0],f"dict_powers{count}"])
-                    action_pairs.append(temp_list)
+                action_pairs.append(temp_list)
                 c += 1
             else:
                 action_pairs.append(["-","-"])
@@ -1017,10 +1038,16 @@ class GlobalModel:
         end = time.process_time() 
         if self._formula_obj.upgradeType[0] == UpgradeType.P:
             if version == "init":
-                result = init_model.ucl_next(coalition, winning_states)      
+                result = init_model.ucl_next(coalition, winning_states)                         # UCL NEXT
+                #result = init_model.minimum_formula_many_agents(coalition, winning_states)     # ATL FUTURE (virker ikke, strategi er feil)
+                #result = init_model.next_formula_many_agents(coalition, winning_states)        # ATL NEXT (virker)
+                #result = init_model.maximum_formula_many_agents(coalition, winning_states)     # ATL GLOBAL (virker ikke, strategi er feil)
                 return 0 in result, end - start, result, init_model.strategy
             elif version == "updated":                      
-                result = updated_model.ucl_next(coalition, winning_states)    
+                result = updated_model.ucl_next(coalition, winning_states)                         # UCL NEXT
+                #result = updated_model.minimum_formula_many_agents(coalition, winning_states)     # ATL FUTURE (virker ikke, strategi er feil)
+                #result = updated_model.next_formula_many_agents(coalition, winning_states)        # ATL NEXT (virker)
+                #result = updated_model.maximum_formula_many_agents(coalition, winning_states)     # ATL GLOBAL (virker kke, strategi er feil)
                 return 0 in result, end - start, result, updated_model.strategy                 
             else:
                 print("try again")
