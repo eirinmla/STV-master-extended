@@ -944,29 +944,11 @@ class GlobalModel:
             return True
 
     def positive_transitions(self, count):
-        _, agents, _ = self.parse_upgrade(count)
-        agents_id_dict = self.agents_to_dict()
+        """returns new transitions"""
         from_states, to_states = self.get_upgrade_winning_states(count)
         temp_transitions = []
         new_transitions = []
-        actions = []
-        c = 0 
-        while c < len(from_states):
-            temp_list = []
-            if agents_id_dict.get(agents[c]) == 0:
-                for element in self._model.get_possible_strategies_for_coalition(c, [1]): 
-                    temp_list.append([f"dict_powers{count}", element[0]])
-                actions.append(temp_list)
-                c += 1
-            elif agents_id_dict.get(agents[c]) == 1:
-                for element in self._model.get_possible_strategies_for_coalition(c, [0]): 
-                    temp_list.append([element[0],f"dict_powers{count}"])
-                actions.append(temp_list)
-                c += 1
-            else:
-                actions.append(["-","-"])
-                print("Only works when two agents")
-                c += 1
+        actions = self.positive_action_pairs(count)
         counter = 0
         while counter < len(from_states):
             temp_transitions.append([from_states[counter], to_states[counter]])
@@ -985,6 +967,33 @@ class GlobalModel:
                     new_transitions.append([element, el])
             counter += 1
         return new_transitions
+
+    def positive_action_pairs(self, count):
+        """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers"""    
+        _, agents, _ = self.parse_upgrade(count)
+        agents_id_dict = self.agents_to_dict()
+        from_states, _ = self.get_upgrade_winning_states(count)
+        action_pairs = []
+        c = 0 
+        while c < len(from_states):
+            temp_list = []
+            if agents_id_dict.get(agents[c]) == 0:
+                for element in from_states[c]:
+                    for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
+                        temp_list.append([f"dict_powers{count}", el[0]])
+                    action_pairs.append(temp_list)
+                c += 1
+            elif agents_id_dict.get(agents[c]) == 1:
+                for element in from_states[c]:
+                    for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
+                        temp_list.append([el[0],f"dict_powers{count}"])
+                    action_pairs.append(temp_list)
+                c += 1
+            else:
+                action_pairs.append(["-","-"])
+                print("Only works when two agents")
+                c += 1
+        return action_pairs 
 
     def updating_model(self):
         count = 0 
