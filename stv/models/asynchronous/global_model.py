@@ -1018,11 +1018,10 @@ class GlobalModel:
                 return False
 
     def get_upgrade_winning_states(self, count) -> List[int]:
-        """"Returns state.id on states that propositions are true, does not nødvendigvis work when proposition is false, will work on that."""
+        """"Returns state.id on states where thruth-values to propositions are correct."""
+        from_states, _, to_states = self.parse_upgrade(count)
         result_from_states = []
         result_to_states = []
-        from_states, _, to_states = self.parse_upgrade(count)
-        print(from_states)
         for state in from_states:
             temp_list = []
             state_dict = self.parse_prop(state)
@@ -1030,14 +1029,18 @@ class GlobalModel:
                 for state in self._states:
                     if (key, value) in state.props.items():
                         temp_list.append(state.id)
+                    elif key not in state.props.keys() and value == False:
+                        temp_list.append(state.id)
             result_from_states.append(temp_list)
         for state in to_states:
             temp_list1 = []
             state_dict = self.parse_prop(state)
             for key, value in state_dict.items():
                 for state in self._states:
-                    for item in state.props.items():
-                        if (key, value) == item:
+                    for element in state.props.items():
+                        if (key, value) == element:
+                            temp_list1.append(state.id)
+                        elif key not in state.props.keys() and value == False:
                             temp_list1.append(state.id)
             result_to_states.append(temp_list1)
         return result_from_states, result_to_states
