@@ -974,19 +974,26 @@ class GlobalModel:
         return new_transitions
 
     def positive_transitions(self, count):
-        """returns new transitions"""
+        """returns new positive transitions for a given upgrade"""
         from_states, to_states = self.get_upgrade_winning_states(count)
         new_transitions = []
         actions = self.positive_action_pairs(count)
         print(actions)
-        counter = 0
-        print(from_states, to_states)
-        while counter < len(from_states):
-            for element in actions[counter]:
-                for elem in from_states[counter]:
-                    for el in to_states[counter]:
-                        new_transitions.append([(elem, el), element])
-            counter +=1
+        update_counter = 0
+        while update_counter < len(from_states):
+            from_states_in_update = from_states[update_counter]
+            action_pairs_in_update = actions[update_counter]
+            to_states_in_updates = to_states[update_counter]
+            state_counter = 0
+            while state_counter < len(from_states_in_update):
+                from_state = from_states_in_update[state_counter]
+                strategies_in_state = action_pairs_in_update[state_counter]
+                for strategy in strategies_in_state:
+                    for to_state in to_states_in_updates:
+                        new_transitions.append([(from_state, to_state), strategy])
+                        print([(from_state, to_state), strategy])
+                state_counter += 1
+            update_counter +=1
         return new_transitions
 
     def positive_action_pairs(self, count):
@@ -998,17 +1005,22 @@ class GlobalModel:
         c = 0 
         while c < len(from_states):
             if agents_id_dict.get(agents[c]) == 0:
+                temp_list1 = []
                 for element in from_states[c]:
                     temp_list = []
                     for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
                         temp_list.append([f"dict_powers{count}", el[0]])
-                    action_pairs.append(temp_list)
+                    temp_list1.append(temp_list)
+                action_pairs.append(temp_list1)
                 c += 1
             elif agents_id_dict.get(agents[c]) == 1:
+                temp_list1 = []
                 for element in from_states[c]:
+                    temp_list = []
                     for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
                         temp_list.append([el[0],f"dict_powers{count}"])
-                action_pairs.append(temp_list)
+                    temp_list1.append(temp_list)
+                action_pairs.append(temp_list1)
                 c += 1
             else:
                 action_pairs.append(["-","-"])

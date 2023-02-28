@@ -15,4 +15,4 @@ PERSISTENT: [p]
 INITIAL: [p = False]
 COALITION: [b]
 LOGIC: UCL
-FORMULA: {[(!s, a, !p)+]}<<a>>(p = False)
+FORMULA: {[(p, b, !p)+], [(!p, a, !p)+]}<<a>>(p = False)
