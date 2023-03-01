@@ -213,7 +213,7 @@ class FormulaParser(Parser):
             elif (element[-1]) == "-":
                 upgrade_type_list.append(UpgradeType.N)
             else: 
-                print("There is something wrong with the formula.")
+                raise Exception("There is something wrong with the formula.")
         return upgrade_type_list
 
     

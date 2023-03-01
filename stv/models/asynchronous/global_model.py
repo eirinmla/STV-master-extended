@@ -887,8 +887,7 @@ class GlobalModel:
         upgrades = self._formula_obj.upgrades[count]
         #print(upgrades)
         if len(upgrades) % 4 != 0:
-            print("ERROR: Something is wrong with the updates")
-            return False
+            raise Exception("Something is wrong with the updates")
         else: 
             indexes = []
             from_states = []
@@ -1023,9 +1022,7 @@ class GlobalModel:
                 action_pairs.append(temp_list1)
                 c += 1
             else:
-                action_pairs.append(["-","-"])
-                print("Only works when two agents")
-                c += 1
+                raise Exception("Only works when two agents")
         return action_pairs 
 
     def updating_model(self):
