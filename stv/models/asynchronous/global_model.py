@@ -93,7 +93,7 @@ class GlobalModel:
     def _parseUpgradeFormula(self):
         formula_parser = FormulaParser()
         return formula_parser.parseUpgradeFormula(self._formula)
-    
+
     def _getCtlCoalition(self):
         coalition: List[str] = []
         if self._formula_obj.pathQuantifier == PathQuantifier.A:
@@ -942,6 +942,36 @@ class GlobalModel:
                 counter += 1
             return True
 
+    def positive_transitions1(self, count):
+        """returns new transitions"""
+        from_states, to_states = self.get_upgrade_winning_states(count)
+        temp_transitions = []
+        new_transitions = []
+        actions = self.positive_action_pairs(count)
+        counter = 0
+        while counter < len(from_states):
+            temp_transitions.append([from_states[counter], to_states[counter]])
+            counter += 1
+        cart_of_states_per_agent = []
+        for element in temp_transitions:
+            cart_of_states = []
+            for el in itertools.product(*element):
+                cart_of_states.append(el)
+            cart_of_states_per_agent.append(cart_of_states)
+        counter = 0
+        for e in actions:
+            while counter < len(cart_of_states_per_agent):
+            #for e in actions:
+                print("e", e)
+                print(counter)
+                for element in cart_of_states_per_agent[counter]:
+                    for el in e:
+                        for element in cart_of_states_per_agent[counter]:
+                            new_transitions.append([element, el])
+                            print(new_transitions)
+                counter += 1
+        return new_transitions
+
     def positive_transitions(self, count):
         """returns new positive transitions for a given upgrade"""
         from_states, to_states = self.get_upgrade_winning_states(count)
@@ -1035,46 +1065,29 @@ class GlobalModel:
     def get_upgrade_winning_states(self, count) -> List[int]:
         """"Returns state.id on states where thruth-values to propositions are correct."""
         from_states, _, to_states = self.parse_upgrade(count)
-        print(from_states)
-        print(to_states)
         result_from_states = []
         result_to_states = []
         for state in from_states:
-            if "[" in state: # if there is a full formula in from_state
-                print("halla")
-            elif "<" in state: # if there is coalition and props in from_state
-                print("heihei")
-            elif len(state) > 2: # if there is minimum two props in from_state but no coalition
-                print("hoy")
-            else: # if there is only simple props in from_state in upgrade
-                temp_list = []
-                state_dict = self.parse_prop(state)
-                for key, value in state_dict.items():
-                    for state in self._states:
-                        if (key, value) in state.props.items():
-                            temp_list.append(state.id)
-                        elif key not in state.props.keys() and value == False:
-                            temp_list.append(state.id)
-                result_from_states.append(temp_list)
+            temp_list = []
+            state_dict = self.parse_prop(state)
+            for key, value in state_dict.items():
+                for state in self._states:
+                    if (key, value) in state.props.items():
+                        temp_list.append(state.id)
+                    elif key not in state.props.keys() and value == False:
+                        temp_list.append(state.id)
+            result_from_states.append(temp_list)
         for state in to_states:
-            if "[" in state: # if there is a full formula in to_state
-                print(state.slice(","))
-            elif "<" in state: # if there is coalition and props in to_state
-                print("heihei")
-            elif len(state) > 2: # if there is minimum two props in to_state but no coalition
-                print(len(state))
-            else: # if there is only simple props in to_state in upgrade
-                temp_list1 = []
-                state_dict = self.parse_prop(state)
-                for key, value in state_dict.items():
-                    for state in self._states:
-                        for element in state.props.items():
-                            if (key, value) == element:
-                                temp_list1.append(state.id)
-                            elif key not in state.props.keys() and value == False: 
-                                temp_list1.append(state.id)
-                result_to_states.append(temp_list1)
-        print("result", result_from_states)
+            temp_list1 = []
+            state_dict = self.parse_prop(state)
+            for key, value in state_dict.items():
+                for state in self._states:
+                    for element in state.props.items():
+                        if (key, value) == element:
+                            temp_list1.append(state.id)
+                        elif key not in state.props.keys() and value == False:
+                            temp_list1.append(state.id)
+            result_to_states.append(temp_list1)
         return result_from_states, result_to_states
 
     def verify_domino(self):
