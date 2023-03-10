@@ -48,6 +48,8 @@ class Parser:
 
     def consume(self, text):
         str = self.read(len(text))
+        #print("str", str)
+        #print("text", text)
         if str != text:
             print(text)
             raise Exception("Consumed string is not equal to the expected string")

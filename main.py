@@ -117,14 +117,14 @@ def ucl(version):
     model.generate(reduction=False)
     end = time.process_time()
 
-    if not model.clashfree(): 
-        raise Exception("ERROR: The updates are clashing.")
-    else: 
-        print(f"Generation time: {end - start}, #states: {model.states_count}")
-        result = model.verify_approximation_ucl(version)
-        print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
-        #result = model.verify_approximation_ucl()
-        #print(f"Lower approximation\nTime: {result[1]}, result: {result[0]}")
+    #if not model.clashfree(): 
+     #   raise Exception("ERROR: The updates are clashing.")
+    #else: 
+    print(f"Generation time: {end - start}, #states: {model.states_count}")
+    result = model.verify_approximation_ucl(version)
+    print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
+    #result = model.verify_approximation_ucl()
+    #print(f"Lower approximation\nTime: {result[1]}, result: {result[0]}")
 
 @run.group()
 def generate_spec():

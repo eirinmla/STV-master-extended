@@ -44,7 +44,9 @@ class CtlFormula(Formula):
         return str(self.pathQuantifier.value) + super().__str__()
 
 class UpgradeFormula():
-    upgrades = []
+    upgrades_left = []
+    upgrades_agent = []
+    upgrades_right = []
     upgradeType = None
     expression = None
     agents = []
@@ -53,7 +55,7 @@ class UpgradeFormula():
         pass
 
     def __str__(self):
-        return "[" + (", ".join(self.upgrades)) + "]" + self.upgradeType.value + "<<" + (", ".join(self.agents)) + ">>" + str(self.expression)
+        return "[" + "(" + str(self.upgrades_left) + "," + (", ".join(self.upgrades_agent)) + "," + str(self.upgrades_right) + ")" + self.upgradeType.value + "]" + "<<" + (", ".join(self.agents)) + ">>" + str(self.expression)
 
 class SimpleExpressionOperator(Enum):
     AND = "&"
@@ -63,39 +65,6 @@ class SimpleExpressionOperator(Enum):
     NEQ = "!="
     GT = ">"
 
-
-class UpdateExpression:
-    from_state = None
-    agent = None
-    to_state = None
-    type = None
-
-    def __init__(self, from_state, agent, to_state):
-        self.from_state = from_state
-        self.agent = agent 
-        self.to_state = to_state
-    
-    def __getValue(self, item, varValues):
-        if isinstance(item, str):
-            if item in varValues:
-                return varValues[item]
-            else:
-                return item
-        elif isinstance(item, UpdateExpression):
-            return item.evaluate(varValues)
-        return item
-
-    def evaluate(self, varValues):
-        from_state = self.__getValue(self.from_state, varValues)
-        agent = self.__getValue(self.agent, varValues)
-        to_state = self.__getValue(self.to_state, varValues)
-        type = self.__getValue(self.type, varValues)
-        return from_state, agent, to_state, type
-        # hva skal denne gjøre? Si om sannhetsverdier er sann elelr ei? kanskje lage dikt? 
-
-
-    def __str__(self):
-        return "(" + str(self.from_state) + "," + str(self.agent) + "," + str(self.to_state) + ")" + str(self.type)
 
 class SimpleExpression:
     left = None
@@ -171,15 +140,13 @@ class FormulaParser(Parser):
         self.setStr(formulaStr)
 
         formula = UpgradeFormula()
-        formula.upgrades = self.__parseFormulaUpgrades()
-        print(formula.upgrades)
+        formula.upgrades_right, formula.upgrades_agent, formula.upgrades_right, formula.upgradeType= self.__parseFormulaUpgrades()
+        print(formula.upgrades_right, formula.upgrades_agent, formula.upgrades_right, formula.upgradeType)
         formula.agents = self.__parseFormulaAgents()
         print(formula.agents)
-        #formula.upgradeType = self.__parseFormulaUpgradeType(formula.upgrades)
-        #print(formula.upgradeType)
         formula.expression = self.__parseFormulaExpression()
         print(formula.expression)
-
+        print(formula)
         return formula 
 
     def __parseFormulaAgents(self):
@@ -197,24 +164,20 @@ class FormulaParser(Parser):
         self.consume(">>")
         return agents
 
-    def __parseFormulaUpgrades1ekte(self):
+    def __parseFormulaUpgrades(self):
         upgrades = []
         self.consume("{")
         while True:
             res = self.readUntil([",", "}"])
             str = res[0]
             chr = res[1]
-            if "(" in str: # from_state
-                print("from_state", str)
+            if "(" in str:
                 if "[" in str:
-                    arr = self.__convertToSimpleExpression(str[2:])
-                    print("arr", arr)
                     upgrades.append(str[0])
                     upgrades.append(str[2:])
                 else:  
                     upgrades.append(str[1:])
-            elif ")" in str: # to_state
-                print("to_state", str)
+            elif ")" in str:
                 if "]" in str: 
                     upgrades.append(str[:-3])
                     upgrades.append(str[-2])
@@ -222,8 +185,7 @@ class FormulaParser(Parser):
                 else: 
                     upgrades.append(str[:-2])
                     upgrades.append(str[-1])
-            else: # agent
-                print("agent", str)
+            else:
                 upgrades.append(str)
 
             if chr == "}":
@@ -240,151 +202,44 @@ class FormulaParser(Parser):
             if element == "]":
                 upgrades_list.append(temp_list)
         upgrades = upgrades_list
-        return upgrades
-
-    def __parseFormulaUpgrades(self): # TROR DET ER DENNE SOM MÅ FIKSES SLIK AT DEN BLIR REKURSIV
-        self.consume("[")
-        upgrades = []
-        counter1 = 1 # counts [
-        counter2 = 0  # counts ]
-        while True:
-            res = self.readUntil(["[", "]"])
-            str = res[0]
-            chr = res[1]
-
-            if chr == "[":
-                counter1 += 1
-            if chr == "]":
-                counter2 += 1
-            print("parser str", str)
-            print("chr", chr)    
-            print(counter1, counter2)
-
-
-            if chr == "[":
-                print("if chr == [:", str)
-                upgrades.append(self.__parseFormulaUpgrades())
-            if chr == "]":
-                if counter1 == counter2:
-                    if self.peekChar(1) != ",":
-                        print("counter1 == counter2 and not ,:", str)
-                        upgrades.append(str)
-                    elif self.peekChar(1) == ",":
-                        print("counter1 == counter2 and ,:", str)
-                        upgrades.append(str)
-                else: 
-                    if self.peekChar(1) == ",":
-                        print("counter1 != counter2 and ,:", str)
-                    else:
-                       print("counter1 != counter2 and not ,:", str)
-            print("en upgrade ferdig parset -> next er å parse updates inni upgraden")
-            print("upgrades", upgrades)
-            self.consume("]")
-            #upgrades = self.__parseupgradelist(upgrades)
-            return upgrades
-
-    def __parseFormulaUpgradesersion3(self): # TROR DET ER DENNE SOM MÅ FIKSES SLIK AT DEN BLIR REKURSIV
-        self.consume("{")
-        self.consume("[")
-        upgrades = ["["]
-        while True:
-            res = self.readUntil([";", ",", "}"])
-            str = res[0]
-            chr = res[1]
-            if chr == ";" and "(" in str: # from_state
-                if "([" in str:
-                    #upgrades.append(self.__parseFormulaUpgrades())
-                    print("from_state", str)
-                    self.stepForward
-                elif "[(" in str:
-                    upgrades.append(str[0])
-                    upgrades.append(str[2:])
-                    print("from_state", str)
-                    self.stepForward
-                else:  
-                    upgrades.append(str[1:])
-                    print("from_state", str)
-                    self.stepForward
-            elif ")" in str: # to_state
-                print("to_state", str)
-                if "]" in str: 
-                    upgrades.append(str[:-3])
-                    upgrades.append(str[-2])
-                    upgrades.append(str[-1])
-                    self.stepForward
-                else: 
-                    upgrades.append(str[:-2])
-                    upgrades.append(str[-1])
-                    self.stepForward
-            else: # agent
-                print("agent", str)
-                upgrades.append(str)
-                self.stepForward
-
-            if chr == "}":
-                break
-            elif chr == ",":
-                self.consume(",")
-            else:
-                self.consume(";")
-        self.consume("}")
+        self.upgradeType = self.__parseFormulaUpgradeType(upgrades)
         print(upgrades)
-        upgrades = self.__parseupgradelist(upgrades)
-        return upgrades
+        upgrades_left, upgrades_agent, upgrades_right = self.parse_upgrade(upgrades)
+        return upgrades_left, upgrades_agent, upgrades_right, self.upgradeType
 
-    def __parseupgradelist(self, upgrades):
-        upgrades_list = []
+
+    def parse_upgrade(self, upgrades):
+        """function for dividing upgrades into three lists, from_states, agents and to_states which are returned."""
+        print("upgrades", upgrades)
+        from_states = []
+        agents = []
+        to_states = [] 
         for element in upgrades:
-            if element == "[":
-                temp_list = []
-            if element != "[" and element != "]" and element != "(" and element != ")":
-                temp_list.append(element)
-            if element == "]":
-                upgrades_list.append(temp_list)
-        upgrades = upgrades_list
-        return upgrades
-
-    def __parseFormulaUpgradesversion2(self): # TROR DET ER DENNE SOM MÅ FIKSES SLIK AT DEN BLIR REKURSIV
-        upgrades = []
-        self.consume("{")
-        while True:
-            res = self.readUntil([",", "}"])
-            str = res[0]
-            chr = res[1]
-            if "(" in str: # from_state
-                if "[" in str:
-                    #upgrades.append(self.__parseFormulaUpgrades())
-                    print(str)
-                else:  
-                    upgrades.append(str[1:])
-            elif ")" in str: # to_state
-                print("to_state", str)
-                if "]" in str: 
-                    upgrades.append(str[:-3])
-                    upgrades.append(str[-2])
-                    upgrades.append(str[-1])
-                else: 
-                    upgrades.append(str[:-2])
-                    upgrades.append(str[-1])
-            else: # agent
-                print("agent", str)
-                upgrades.append(str)
-
-            if chr == "}":
-                break
-            else:
-                self.consume(",")
-        self.consume("}")
-        upgrades_list = []
-        for element in upgrades:
-            if element == "[":
-                temp_list = []
-            if element != "[" and element != "]" and element != "(" and element != ")":
-                temp_list.append(element)
-            if element == "]":
-                upgrades_list.append(temp_list)
-        upgrades = upgrades_list
-        return upgrades
+            from_states_temp = []
+            agents_temp = []
+            to_states_temp = [] 
+            print(element)
+            if len(element) % 4 != 0:
+                raise Exception("Something is wrong with the updates")
+            else: 
+                indexes = []
+                for el in element:
+                    indexes.append(element.index(el))
+                c = 0
+                while c < len(indexes):
+                    if c % 4 == 0:
+                        print(element[c])
+                        from_states_temp.append(element[c])
+                    elif c % 4 == 1:
+                        agents_temp.append(element[c]) 
+                    elif c % 4 == 2:
+                        to_states_temp.append(element[c])
+                    c += 1
+            from_states.append(from_states_temp)
+            to_states.append(to_states_temp)
+            agents.append(agents_temp)
+        print(from_states, agents, to_states)
+        return from_states, agents, to_states
     
     def __parseFormulaUpgradeType(self, formula): #  notes if the upgrade is positive or negative, it takes the last sign of the formula which will always be + or -, 
                                                   #  and all updates in the same upgrade is of the same type. 
@@ -447,9 +302,7 @@ class FormulaParser(Parser):
                 self.stepForward()
             else:
                 raise Exception("Unimplemented character inside __parseFormulaExpression")
-        print("formulaExpression", formulaExpression)
         simpleExpression = self.__convertToSimpleExpression(formulaExpression)
-        print("simpleExpression", simpleExpression)
         self.consume(")")
         return simpleExpression
 
