@@ -55,6 +55,62 @@ class UpgradeFormula():
     def __str__(self):
         return "[" + (", ".join(self.upgrades)) + "]" + self.upgradeType.value + "<<" + (", ".join(self.agents)) + ">>" + str(self.expression)
 
+class UpgradeExpression():
+    upgradeList = []
+    coalitionExpression = None
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        if upgradeList:
+            return str(self.upgradeList) + str(self.coalitionExpression)
+        else:
+            return str(self.coalitionExpression)
+
+class CoalitionExpression():
+    coalition = []
+    simpleExpression = None
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        if coalition:
+            return str(self.coalition) + str(self.simpleExpression)
+        else:
+            return str(self.simpleExpression)
+
+class UpgradeList():
+    upgrades = None
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return '{' + ', '.join(self.upgrades) + '}'
+
+class Upgrade():
+    updates = None
+
+    def __init__(self):
+        pass
+    
+    def __str__(self):
+        return '[' + ', '.join(self.updates) + ']'
+
+class Update():
+    fromState = None
+    agent = None
+    toState = None
+    upgradeType = None
+
+    def __init__(self):
+        pass
+    
+    def __str__(self):
+        return '(' + str(self.fromState) + ',' + str(self.agent) + ',' + str(self.toState) + ')' + str(self.upgradeType.value)
+
 class SimpleExpressionOperator(Enum):
     AND = "&"
     OR = "|"
@@ -107,6 +163,14 @@ class SimpleExpression:
             return str(self.operator.value) + str(self.right)
         else:
             return "(" + str(self.left) + " " + str(self.operator.value) + " " + str(self.right) + ")"
+
+class Agent():
+    literal = None
+    def __init__(self, atom):
+        self.literal = atom
+
+    def __str__(self):
+        return self.literal
 
 
 class FormulaParser(Parser):
