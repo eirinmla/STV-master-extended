@@ -213,6 +213,27 @@ class FormulaParser(Parser):
 
         return formula 
 
+    def __findMatchingParenthesis(self, char):
+        parenthesis = {'(':')','[':']','{':'}'}
+        match = parenthesis[char]
+        startidx = self.idx
+
+        count = 0
+        while True:
+            print(count)
+            if self.peekChar(0) == char:
+                count += 1
+            elif self.peekChar(0) == match:
+                count -= 1
+
+            self.stepForward()
+
+            if count == 0:
+                matchidx = self.idx
+                self.idx = startidx
+
+                return matchidx
+
     def __parseFormulaAgents(self):
         agents = []
         self.consume("<<")
