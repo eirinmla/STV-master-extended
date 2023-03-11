@@ -43,7 +43,7 @@ class CtlFormula(Formula):
     def __str__(self):
         return str(self.pathQuantifier.value) + super().__str__()
 
-class UpgradeExpression():
+class UpgradeFormula():
     upgradeList = []
     coalitionExpression = None
 
@@ -189,12 +189,12 @@ class FormulaParser(Parser):
     def parseUpgradeFormula(self, formulaStr): # entry point
         self.setStr(formulaStr)
 
-        formula = self.__parseUpgradeExpression()
+        formula = self.__parseUpgradeFormula()
 
         return formula 
 
-    def __parseUpgradeExpression(self):
-        formula = UpgradeExpression()
+    def __parseUpgradeFormula(self):
+        formula = UpgradeFormula()
         if self.peekChar(0) == '{':
             formula.upgradeList = self.__parseUpgradeList()
 
@@ -240,11 +240,11 @@ class FormulaParser(Parser):
     def __parseUpdate(self):
         update = Update()
         self.consume("(")
-        update.fromState = self.__parseUpgradeExpression()
+        update.fromState = self.__parseUpgradeFormula()
         self.consume(",")
         update.agent = self.__parseCoalitionAgent()
         self.consume(",")
-        update.toState = self.__parseUpgradeExpression()
+        update.toState = self.__parseUpgradeFormula()
         self.consume(")")
         update.upgradeType = self.__parseFormulaUpgradeType()
 
