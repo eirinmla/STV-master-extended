@@ -51,7 +51,7 @@ class UpgradeExpression():
         pass
 
     def __str__(self):
-        if upgradeList:
+        if self.upgradeList:
             return str(self.upgradeList) + str(self.coalitionExpression)
         else:
             return str(self.coalitionExpression)
@@ -64,7 +64,7 @@ class CoalitionExpression():
         pass
 
     def __str__(self):
-        if coalitionAgents:
+        if self.coalitionAgents:
             return str(self.coalitionAgents) + str(self.simpleExpression)
         else:
             return str(self.simpleExpression)
