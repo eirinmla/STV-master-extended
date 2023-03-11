@@ -76,7 +76,7 @@ class UpgradeList():
         pass
 
     def __str__(self):
-        return '{' + str(self.upgrades) + '}'
+        return '{' + ', '.join(map(str, self.upgrades)) + '}'
 
 class Upgrade():
     updates = None
@@ -85,7 +85,7 @@ class Upgrade():
         pass
     
     def __str__(self):
-        return '[' + ', '.join(self.updates) + ']'
+        return '[' + ', '.join(map(str, self.updates)) + ']'
 
 class Update():
     fromState = None
@@ -152,6 +152,8 @@ class SimpleExpression:
         else:
             return "(" + str(self.left) + " " + str(self.operator.value) + " " + str(self.right) + ")"
 
+    def __repr__(self) -> str:
+        return str(self)
 class Agent():
     literal = None
     def __init__(self):
