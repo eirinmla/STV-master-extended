@@ -76,7 +76,7 @@ class UpgradeList():
         pass
 
     def __str__(self):
-        return '{' + ', '.join(self.upgrades) + '}'
+        return '{' + str(self.upgrades) + '}'
 
 class Upgrade():
     updates = None
@@ -154,9 +154,8 @@ class SimpleExpression:
 
 class Agent():
     literal = None
-    def __init__(self, atom):
-        self.literal = atom
-
+    def __init__(self):
+        pass
     def __str__(self):
         return self.literal
 
@@ -190,7 +189,7 @@ class FormulaParser(Parser):
         self.setStr(formulaStr)
 
         formula = self.__parseUpgradeFormula()
-
+        print(formula)
         return formula 
 
     def __parseUpgradeFormula(self):
@@ -198,14 +197,16 @@ class FormulaParser(Parser):
         if self.peekChar(0) == '{':
             formula.upgradeList = self.__parseUpgradeList()
 
-        self.__parseCoalitionExpression()
+        formula.coalitionExpression = self.__parseCoalitionExpression()
         return formula
 
         
     def __parseCoalitionExpression(self):
         formula = CoalitionExpression()
 
-        formula.coalitionAgents = self.__parseFormulaAgents()
+        if self.peekChar(0) == "<":
+            formula.coalitionAgents = self.__parseFormulaAgents()
+        
         formula.simpleExpression = self.__parseFormulaExpression()
 
         return formula
@@ -216,7 +217,7 @@ class FormulaParser(Parser):
         upgrade_list.upgrades = []
         idx = self.__findMatchingParenthesis('{')
         self.consume("{")
-        while self.idx < idx:
+        while self.idx < idx-1:
             upgrade_list.upgrades.append(self.__parseUpgrade())
             if self.peekChar(0) == ",":
                 self.consume(",")
@@ -229,7 +230,7 @@ class FormulaParser(Parser):
         upgrade.updates = []
         idx = self.__findMatchingParenthesis('[')
         self.consume("[")
-        while self.idx < idx:
+        while self.idx < idx-1:
             upgrade.updates.append(self.__parseUpdate())
             if self.peekChar(0) == ",":
                 self.consume(",")
@@ -274,7 +275,6 @@ class FormulaParser(Parser):
 
         count = 0
         while True:
-            print(count)
             if self.peekChar(0) == char:
                 count += 1
             elif self.peekChar(0) == match:
