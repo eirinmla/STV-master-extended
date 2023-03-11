@@ -43,18 +43,6 @@ class CtlFormula(Formula):
     def __str__(self):
         return str(self.pathQuantifier.value) + super().__str__()
 
-class UpgradeFormula():
-    upgrades = []
-    upgradeType = None
-    expression = None
-    agents = []
-
-    def __init__(self):
-        pass
-
-    def __str__(self):
-        return "[" + (", ".join(self.upgrades)) + "]" + self.upgradeType.value + "<<" + (", ".join(self.agents)) + ">>" + str(self.expression)
-
 class UpgradeExpression():
     upgradeList = []
     coalitionExpression = None
@@ -69,15 +57,15 @@ class UpgradeExpression():
             return str(self.coalitionExpression)
 
 class CoalitionExpression():
-    coalition = []
+    coalitionAgents = []
     simpleExpression = None
 
     def __init__(self):
         pass
 
     def __str__(self):
-        if coalition:
-            return str(self.coalition) + str(self.simpleExpression)
+        if coalitionAgents:
+            return str(self.coalitionAgents) + str(self.simpleExpression)
         else:
             return str(self.simpleExpression)
 
@@ -201,17 +189,19 @@ class FormulaParser(Parser):
     def parseUpgradeFormula(self, formulaStr):
         self.setStr(formulaStr)
 
-        formula = UpgradeFormula()
-        formula.upgrades = self.__parseFormulaUpgrades()
-        print(formula.upgrades)
-        formula.agents = self.__parseFormulaAgents()
-        print(formula.agents)
-        formula.upgradeType = self.__parseFormulaUpgradeType(formula.upgrades)
-        print(formula.upgradeType)
-        formula.expression = self.__parseFormulaExpression()
-        print(formula.expression)
+        formula = UpgradeExpression()
+        self.__parseUpgradeExpression(formula)
 
         return formula 
+
+    def __parseUpgradeExpression(self, formula):
+        if self.read(1) == '{':
+            self.__parseUpgradeList(formula)
+
+        self.__parseCoalitionExpression(formula)
+        
+    def __parseUpgradeList(self, formula):
+        idx = self.__findMatchingParenthesis('{')
 
     def __findMatchingParenthesis(self, char):
         parenthesis = {'(':')','[':']','{':'}'}
@@ -248,46 +238,6 @@ class FormulaParser(Parser):
                 self.consume(",")
         self.consume(">>")
         return agents
-
-    def __parseFormulaUpgrades(self):
-        upgrades = []
-        self.consume("{")
-        while True:
-            res = self.readUntil([",", "}"])
-            str = res[0]
-            chr = res[1]
-            if "(" in str:
-                if "[" in str:
-                    upgrades.append(str[0])
-                    upgrades.append(str[2:])
-                else:  
-                    upgrades.append(str[1:])
-            elif ")" in str:
-                if "]" in str: 
-                    upgrades.append(str[:-3])
-                    upgrades.append(str[-2])
-                    upgrades.append(str[-1])
-                else: 
-                    upgrades.append(str[:-2])
-                    upgrades.append(str[-1])
-            else:
-                upgrades.append(str)
-
-            if chr == "}":
-                break
-            else:
-                self.consume(",")
-        self.consume("}")
-        upgrades_list = []
-        for element in upgrades:
-            if element == "[":
-                temp_list = []
-            if element != "[" and element != "]" and element != "(" and element != ")":
-                temp_list.append(element)
-            if element == "]":
-                upgrades_list.append(temp_list)
-        upgrades = upgrades_list
-        return upgrades
     
     def __parseFormulaUpgradeType(self, formula): #  notes if the upgrade is positive or negative, it takes the last sign of the formula which will always be + or -, 
                                                   #  and all updates in the same upgrade is of the same type. 
