@@ -29,7 +29,13 @@ class Parser:
             return self.str[self.idx + diff]
         else:
             return None
+    
+    def peekNextChar(self):
+        c = self.readChar()
+        self.stepBack()
 
+        return c
+        
     def read(self, numNonWhiteSpaceChars):
         str = ""
         while len(str) < numNonWhiteSpaceChars:

@@ -196,7 +196,8 @@ class FormulaParser(Parser):
 
     def __parseUpgradeFormula(self):
         formula = UpgradeFormula()
-        if self.peekChar(0) == '{':
+        
+        if self.peekNextChar() == '{':
             formula.upgradeList = self.__parseUpgradeList()
 
         formula.coalitionExpression = self.__parseCoalitionExpression()
@@ -206,7 +207,7 @@ class FormulaParser(Parser):
     def __parseCoalitionExpression(self):
         formula = CoalitionExpression()
 
-        if self.peekChar(0) == "<":
+        if self.peekNextChar() == "<":
             formula.coalitionAgents = self.__parseFormulaAgents()
         
         formula.simpleExpression = self.__parseFormulaExpression()
@@ -221,7 +222,7 @@ class FormulaParser(Parser):
         self.consume("{")
         while self.idx < idx-1:
             upgrade_list.upgrades.append(self.__parseUpgrade())
-            if self.peekChar(0) == ",":
+            if self.peekNextChar() == ",":
                 self.consume(",")
         self.consume("}")
         return upgrade_list
@@ -234,7 +235,7 @@ class FormulaParser(Parser):
         self.consume("[")
         while self.idx < idx-1:
             upgrade.updates.append(self.__parseUpdate())
-            if self.peekChar(0) == ",":
+            if self.peekNextChar() == ",":
                 self.consume(",")
         self.consume("]")
         return upgrade
