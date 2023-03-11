@@ -275,6 +275,8 @@ class FormulaParser(Parser):
         match = parenthesis[char]
         startidx = self.idx
 
+        self.readUntil(char)
+        
         count = 0
         while True:
             if self.peekChar(0) == char:
