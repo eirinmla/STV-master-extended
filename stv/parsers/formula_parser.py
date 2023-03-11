@@ -186,22 +186,86 @@ class FormulaParser(Parser):
 
         return formula
     
-    def parseUpgradeFormula(self, formulaStr):
+    def parseUpgradeFormula(self, formulaStr): # entry point
         self.setStr(formulaStr)
 
-        formula = UpgradeExpression()
-        self.__parseUpgradeExpression(formula)
+        formula = self.__parseUpgradeExpression()
 
         return formula 
 
-    def __parseUpgradeExpression(self, formula):
-        if self.read(1) == '{':
-            self.__parseUpgradeList(formula)
+    def __parseUpgradeExpression(self):
+        formula = UpgradeExpression()
+        if self.peekChar(0) == '{':
+            formula.upgradeList = self.__parseUpgradeList()
 
-        self.__parseCoalitionExpression(formula)
+        self.__parseCoalitionExpression()
+        return formula
+
         
-    def __parseUpgradeList(self, formula):
+    def __parseCoalitionExpression(self):
+        formula = CoalitionExpression()
+
+        formula.coalitionAgents = self.__parseFormulaAgents()
+        formula.simpleExpression = self.__parseFormulaExpression()
+
+        return formula
+
+
+    def __parseUpgradeList(self):
+        upgrade_list = UpgradeList()
+        upgrade_list.upgrades = []
         idx = self.__findMatchingParenthesis('{')
+        self.consume("{")
+        while self.idx < idx:
+            upgrade_list.upgrades.append(self.__parseUpgrade())
+            if self.peekChar(0) == ",":
+                self.consume(",")
+        self.consume("}")
+        return upgrade_list
+
+
+    def __parseUpgrade(self):
+        upgrade = Upgrade()
+        upgrade.updates = []
+        idx = self.__findMatchingParenthesis('[')
+        self.consume("[")
+        while self.idx < idx:
+            upgrade.updates.append(self.__parseUpdate())
+            if self.peekChar(0) == ",":
+                self.consume(",")
+        self.consume("]")
+        return upgrade
+
+    
+    def __parseUpdate(self):
+        update = Update()
+        self.consume("(")
+        update.fromState = self.__parseUpgradeExpression()
+        self.consume(",")
+        update.agent = self.__parseCoalitionAgent()
+        self.consume(",")
+        update.toState = self.__parseUpgradeExpression()
+        self.consume(")")
+        update.upgradeType = self.__parseFormulaUpgradeType()
+
+        return update
+
+    def __parseCoalitionAgent(self):
+        agent = Agent()
+        res = self.readUntil(",")
+        agent.literal = res[0]
+
+        return agent
+
+
+    def __parseFormulaUpgradeType(self): #  notes if the update is positive or negative.                                     
+        c = self.read(1)
+        if c == "+":
+            return UpgradeType.P
+        elif c == "-":
+            return UpgradeType.N
+        else:
+            raise Exception("Unknown Upgrade Type")
 
     def __findMatchingParenthesis(self, char):
         parenthesis = {'(':')','[':']','{':'}'}
@@ -239,17 +303,7 @@ class FormulaParser(Parser):
         self.consume(">>")
         return agents
     
-    def __parseFormulaUpgradeType(self, formula): #  notes if the upgrade is positive or negative, it takes the last sign of the formula which will always be + or -, 
-                                                  #  and all updates in the same upgrade is of the same type. 
-        upgrade_type_list = []
-        for element in formula: 
-            if (element[-1]) == "+":
-                upgrade_type_list.append(UpgradeType.P)
-            elif (element[-1]) == "-":
-                upgrade_type_list.append(UpgradeType.N)
-            else: 
-                raise Exception("There is something wrong with the formula.")
-        return upgrade_type_list
+
 
     
     def __parseFormulaTemporalOperator(self):
