@@ -76,7 +76,7 @@ class GlobalModel:
         elif self.isCtl():
             self.coalition: List = self._getCtlCoalition()
         elif self.isUCL():
-            self.coalition: List = self._formula_obj.agents
+            self.coalition: List = self._formula_obj.coalitionExpression.coalitionAgents
         self._stack1_dict: Dict[str, int] = dict()
         self._transitions_count: int = 0
         self._epistemic_states_dictionaries: List[Dict[str, Set[int]]] = []
@@ -162,7 +162,10 @@ class GlobalModel:
         self._add_index_to_transitions()
         # self._compute_dependent_transitions()
         self._compute_shared_transitions()
-        self._coalition = self._formula_obj.agents
+        if self._logicType == LogicType.UCL:
+            self._coalition = self._formula_obj.coalitionExpression.coalitionAgents
+        else:
+            self._coalition = self._formula_obj.agents
         self._model.coalition = self.agent_name_coalition_to_ids(self._coalition)
         if reduction:
             self._add_to_stack(GlobalState.initial_state(self._agents_count, self._initial))
