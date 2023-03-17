@@ -84,6 +84,10 @@ class Upgrade():
     def __init__(self):
         pass
     
+    def eval(self):
+        if len(set(i.upgradeType.value for i in self.updates)) != 1:
+            raise Exception("Something wrong with update types within a upgrade.")
+
     def __str__(self):
         return '[' + ', '.join(map(str, self.updates)) + ']'
 
@@ -238,6 +242,7 @@ class FormulaParser(Parser):
             if self.peekNextChar() == ",":
                 self.consume(",")
         self.consume("]")
+        upgrade.eval()
         return upgrade
 
     
