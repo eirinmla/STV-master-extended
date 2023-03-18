@@ -84,7 +84,7 @@ class Upgrade():
     def __init__(self):
         pass
     
-    def eval(self):
+    def test_uniform_upgrade_types(self):
         if len(set(i.upgradeType.value for i in self.updates)) != 1:
             raise Exception("Something wrong with update types within a upgrade.")
 
@@ -242,7 +242,7 @@ class FormulaParser(Parser):
             if self.peekNextChar() == ",":
                 self.consume(",")
         self.consume("]")
-        upgrade.eval()
+        upgrade.test_uniform_upgrade_types()
         return upgrade
 
     
