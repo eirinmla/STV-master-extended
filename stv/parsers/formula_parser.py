@@ -56,6 +56,10 @@ class UpgradeFormula():
         else:
             return str(self.coalitionExpression)
 
+    @property
+    def agents(self):
+        return self.coalitionExpression.coalitionAgents
+
 class CoalitionExpression():
     coalitionAgents = []
     simpleExpression = None
