@@ -1025,42 +1025,116 @@ class GlobalModel:
                 raise Exception("Only works when two agents")
         return action_pairs 
 
-    def updating_model(self):
-        count = 0 
-        for elm in self._formula_obj.upgradeType:
-            if elm == UpgradeType.P:
-                new_transitions = self.positive_transitions(count)
-                print("new transitions: ", new_transitions)
-                updated_model = self._model.updated_model(new_transitions)
-            elif self._formula_obj.upgradeType == UpgradeType.N:
-                pass
-            count += 1
+    def updating_model(self): # alltid ytterst
+        new_transitions = self.updating_model_upgrade_formula(self._formula_obj)
+        print(new_transitions)
+        updated_model = self._model.updated_model(new_transitions)
         return updated_model
+
+    def updating_model_upgrade_formula(self, upgrade_formula):
+        #original_model = self._model
+        #self._model = SimpleModel(self._agents_count)
+        if upgrade_formula.upgradeList:
+            new_transitions = self.updating_model_upgrade_list(upgrade_formula.upgradeList)
+            coalition_expr = self.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
+            #her
+        else: 
+            coalition_expr = self.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
+            return coalition_expr
+        #hent resultater fra self._model
+        #self._model = original_model
+        return new_transitions
+
+    def updating_model_upgrade_list(self, upgrade_list):
+        new_transitions = []
+        for upgrade in upgrade_list.upgrades:
+            new_transitions += self.updating_model_upgrade(upgrade)
+        return new_transitions
+
+    
+    def updating_model_upgrade(self, upgrade):
+        new_transitions = []
+        # må legge inn test for executability her
+        for update in upgrade.updates:
+            new_transitions += self.updating_model_update(update)
+        return new_transitions
+
+
+    def updating_model_update(self, update):
+        from_state_ids = self.updating_model_upgrade_formula(update.fromState)
+        to_state_ids = self.updating_model_upgrade_formula(update.toState)
+        action_pairs = self.get_positive_action_pairs(from_state_ids, update.agent)
+        return from_state_ids[0], to_state_ids[0], action_pairs[0]
+
+    def updating_model_coalition_expression(self, coalition_expression):
+        if coalition_expression.coalitionAgents:
+            winning_states = self.updating_model_simple_expression(coalition_expression.simpleExpression)
+            coalition = coalition_expression.coalitionAgents
+            # teste formel og gi ut from_states hvor formel er sann
+            return winning_states
+        else:
+            state_ids = self.updating_model_simple_expression(coalition_expression.simpleExpression)
+            print(state_ids)
+            return state_ids
+
+    def updating_model_simple_expression(self, simple_expression):
+        states_with_props = self.get_states_with_props(simple_expression)
+        return states_with_props
+
+    def get_states_with_props(self, expr) -> List[int]:
+        result = []
+        for state in self._states:
+            if expr.evaluate(state.props):
+                result.append(state.id)
+
+        return result
+
+    def get_positive_action_pairs(self, from_states, agent):
+        """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers"""    
+        agents_id_dict = self.agents_to_dict()
+        action_pairs = []
+        c = 0 
+        while c < len(from_states):
+            if agents_id_dict.get(str(agent)) == 0:
+                for element in from_states:
+                    for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
+                        action_pairs.append([f"dict_powers", el[0]])
+                c += 1
+            elif agents_id_dict.get(str(agent)) == 1:
+                for element in from_states:
+                    for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
+                        action_pairs.append([el[0],f"dict_powers"])
+                c += 1
+            else:
+                raise Exception("Only works when two agents")
+        return action_pairs 
 
     def verify_approximation_ucl(self, version):
         init_model = self._model.to_atl_perfect()
-        updated_model = self.updating_model()
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
+        updated_model = self.updating_model()
         result = []
         start = time.process_time()
         end = time.process_time() 
-        if self._formula_obj.upgradeType[0] == UpgradeType.P:
-            if version == "init":
-                result = init_model.ucl_next(coalition, winning_states)                         # UCL NEXT
+        #if self._formula_obj.upgradeType == UpgradeType.P:
+        if version == "init":
+            result = init_model.ucl_next(coalition, winning_states)                         # UCL NEXT
                 #result = init_model.minimum_formula_many_agents(coalition, winning_states)     # ATL FUTURE (virker ikke, strategi er feil)
                 #result = init_model.next_formula_many_agents(coalition, winning_states)        # ATL NEXT (virker)
                 #result = init_model.maximum_formula_many_agents(coalition, winning_states)     # ATL GLOBAL (virker ikke, strategi er feil)
-                return 0 in result, end - start, result, init_model.strategy
-            elif version == "updated":                      
-                result = updated_model.ucl_next(coalition, winning_states)                         # UCL NEXT
+            print(result)
+            return 0 in result, end - start, result, init_model.strategy
+        elif version == "updated":                      
+            result = updated_model.ucl_next(coalition, winning_states)                         # UCL NEXT
                 #result = updated_model.minimum_formula_many_agents(coalition, winning_states)     # ATL FUTURE (virker ikke, strategi er feil)
                 #result = updated_model.next_formula_many_agents(coalition, winning_states)        # ATL NEXT (virker)
                 #result = updated_model.maximum_formula_many_agents(coalition, winning_states)     # ATL GLOBAL (virker kke, strategi er feil)
-                return 0 in result, end - start, result, updated_model.strategy                 
-            else:
-                print("try again")
-                return False
+            print(result)
+            return 0 in result, end - start, result, updated_model.strategy                 
+        else:
+            print("try again")
+            return False
 
     def get_upgrade_winning_states(self, count) -> List[int]:
         """"Returns state.id on states where thruth-values to propositions are correct."""
