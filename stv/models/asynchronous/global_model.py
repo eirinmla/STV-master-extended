@@ -1054,9 +1054,21 @@ class GlobalModel:
     
     def updating_model_upgrade(self, upgrade):
         new_transitions = []
-        # må legge inn test for executability her
+        granted_powers_dict = {}
+
         for update in upgrade.updates:
-            new_transitions += self.updating_model_update(update)
+            from_states_ids, new_transitions = self.updating_model_update(update)
+
+            if str(update.agent) in granted_powers_dict:
+                for element in from_states_ids:
+                    granted_powers_dict[str(update.agent)].append(element)
+            else: 
+                granted_powers_dict[str(update.agent)] = (from_states_ids)
+
+            new_transitions += new_transitions
+
+        self.test_clashfreeness(granted_powers_dict)
+
         return new_transitions
 
 
@@ -1064,7 +1076,8 @@ class GlobalModel:
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
         action_pairs = self.get_positive_action_pairs(from_state_ids, update.agent)
-        return from_state_ids[0], to_state_ids[0], action_pairs[0]
+        new_transitions = from_state_ids[0], to_state_ids[0], action_pairs[0]
+        return from_state_ids, new_transitions
 
     def updating_model_coalition_expression(self, coalition_expression):
         if coalition_expression.coalitionAgents:
@@ -1108,6 +1121,19 @@ class GlobalModel:
             else:
                 raise Exception("Only works when two agents")
         return action_pairs 
+
+
+    def test_clashfreeness(self, granted_powers_dict):
+        values = set()
+        value_count = 0
+        if len(granted_powers_dict.keys()) > 1: 
+            for _, value in granted_powers_dict.items():
+                value_count += len(value)
+                for val in value:
+                    values.add(val)
+        if len(values) != value_count:
+            raise Exception("Two or more updates are clashing.")
+
 
     def verify_approximation_ucl(self, version):
         init_model = self._model.to_atl_perfect()
