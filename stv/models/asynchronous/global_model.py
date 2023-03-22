@@ -1102,24 +1102,23 @@ class GlobalModel:
 
         return result
 
-    def get_positive_action_pairs(self, from_states, agent):
-        """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers"""    
+    def get_positive_action_pairs(self, from_states, to_states, agent):
+        """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers and from and to states for the action pairs"""    
         agents_id_dict = self.agents_to_dict()
         action_pairs = []
-        c = 0 
-        while c < len(from_states):
-            if agents_id_dict.get(str(agent)) == 0:
-                for element in from_states:
-                    for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
-                        action_pairs.append([f"dict_powers", el[0]])
-                c += 1
-            elif agents_id_dict.get(str(agent)) == 1:
-                for element in from_states:
-                    for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
-                        action_pairs.append([el[0],f"dict_powers"])
-                c += 1
-            else:
-                raise Exception("Only works when two agents")
+        if agents_id_dict.get(str(agent)) == 0:
+            for element in from_states:
+                for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
+                    for elem in to_states:
+                        action_pairs.append([element, elem, [f"dict_powers", el[0]]])
+        elif agents_id_dict.get(str(agent)) == 1:
+            for element in from_states:
+                for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
+                    for elem in to_states:
+                        action_pairs.append([element, elem, [el[0],f"dict_powers"]])
+        else:
+            raise Exception("Only works when two agents")
+        print("originale action pairs", action_pairs)
         return action_pairs 
 
 
