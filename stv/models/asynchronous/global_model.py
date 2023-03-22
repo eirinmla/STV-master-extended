@@ -1053,30 +1053,28 @@ class GlobalModel:
 
     
     def updating_model_upgrade(self, upgrade):
-        new_transitions = []
+        new_transitions_list = []
         granted_powers_dict = {}
 
         for update in upgrade.updates:
             from_states_ids, new_transitions = self.updating_model_update(update)
-
             if str(update.agent) in granted_powers_dict:
                 for element in from_states_ids:
                     granted_powers_dict[str(update.agent)].append(element)
             else: 
                 granted_powers_dict[str(update.agent)] = (from_states_ids)
 
-            new_transitions += new_transitions
+            new_transitions_list += new_transitions
 
         self.test_clashfreeness(granted_powers_dict)
-
-        return new_transitions
+        return new_transitions_list
 
 
     def updating_model_update(self, update):
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
-        action_pairs = self.get_positive_action_pairs(from_state_ids, update.agent)
-        new_transitions = from_state_ids[0], to_state_ids[0], action_pairs[0]
+        action_pairs = self.get_positive_action_pairs(from_state_ids, to_state_ids, update.agent)
+        new_transitions = action_pairs
         return from_state_ids, new_transitions
 
     def updating_model_coalition_expression(self, coalition_expression):
