@@ -203,7 +203,7 @@ class FormulaParser(Parser):
         self.setStr(formulaStr)
 
         formula = self.__parseUpgradeFormula()
-        print(formula)
+        print("Parsed formula:", formula)
         return formula 
 
     def __parseUpgradeFormula(self):
