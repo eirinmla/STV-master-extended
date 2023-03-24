@@ -1167,32 +1167,27 @@ class GlobalModel:
             raise Exception("Two or more updates are clashing.")
 
 
-    def verify_approximation_ucl(self, version):
+    def verify_approximation_ucl(self): # verifying formulas in models
+
         init_model = self._model.to_atl_perfect()
         winning_states = set(self.get_formula_winning_states())
         coalition = self.agent_name_coalition_to_ids(self._coalition)
-        updated_model = self.updating_model()
-        result = []
         start = time.process_time()
+        result = init_model.ucl_next(coalition, winning_states)
         end = time.process_time() 
-        #if self._formula_obj.upgradeType == UpgradeType.P:
-        if version == "init":
-            result = init_model.ucl_next(coalition, winning_states)                         # UCL NEXT
-                #result = init_model.minimum_formula_many_agents(coalition, winning_states)     # ATL FUTURE (virker ikke, strategi er feil)
-                #result = init_model.next_formula_many_agents(coalition, winning_states)        # ATL NEXT (virker)
-                #result = init_model.maximum_formula_many_agents(coalition, winning_states)     # ATL GLOBAL (virker ikke, strategi er feil)
-            print(result)
-            return 0 in result, end - start, result, init_model.strategy
-        elif version == "updated":                      
-            result = updated_model.ucl_next(coalition, winning_states)                         # UCL NEXT
-                #result = updated_model.minimum_formula_many_agents(coalition, winning_states)     # ATL FUTURE (virker ikke, strategi er feil)
-                #result = updated_model.next_formula_many_agents(coalition, winning_states)        # ATL NEXT (virker)
-                #result = updated_model.maximum_formula_many_agents(coalition, winning_states)     # ATL GLOBAL (virker kke, strategi er feil)
-            print(result)
-            return 0 in result, end - start, result, updated_model.strategy                 
-        else:
-            print("try again")
-            return False
+        print("\nModel checking", self._formula_obj.coalitionExpression, "in initial model."
+              "\nThe result is:", 0 in result, 
+              "\nThe strategy is:", init_model.strategy, 
+              "\nTime spent model checking initial model:", start - end, "\n")
+        
+        updated_model = self.updating_model()
+        start = time.process_time()     
+        result = updated_model.ucl_next(coalition, winning_states)
+        end = time.process_time()
+        print(result)
+
+        return 0 in result, end - start, result, updated_model.strategy                 
+    
 
     def get_upgrade_winning_states(self, count) -> List[int]:
         """"Returns state.id on states where thruth-values to propositions are correct."""
