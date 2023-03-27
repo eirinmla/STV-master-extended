@@ -13,8 +13,7 @@ act: state1 -> state2 [p=True]
 
 PERSISTENT: [p]
 INITIAL: [p = False]
-COALITION: [b]
+COALITION: [a]
 LOGIC: UCL 
-FORMULA: {[((p = False), a, {[((q = False), a, (p = True))+]}<<a>>(p = True))+]}<<b>>(p = False)
-
-%FORMULA: {[((p = True), a, (q = True))+, ((p = False), b, (q = False))+], [((p = False), b, <<a>>(q = True))-]}<<b>>(p = False)
+%FORMULA: {[((q = False), a, (q = False))+]}<<a>>(p = False)
+FORMULA: {[({[((p = False), a, (p = True))+]}<<a>>(p = True), a, {[((q = False), a, (p = True))+]}<<a>>(p = True))+]}<<a>>(p = False)

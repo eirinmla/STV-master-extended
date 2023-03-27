@@ -365,6 +365,7 @@ class ATLIrModel:
                 #continue
 
             for action in itertools.product(*actions):
+                print(action)
                 if action == "*":
                     continue
 
@@ -372,8 +373,8 @@ class ATLIrModel:
                     self.strategy[state_id] = list(action)
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
-                    break
-        print(self.strategy)        
+                    break  
+        print(self.strategy)
         return result_states
 
     def maximum_formula_many_agents(self, agent_ids: List[int], winning_states: Set[int]) -> Set[int]: # GLOBAL-operator 
@@ -435,6 +436,7 @@ class ATLIrModel:
 
     def is_reachable_by_agents(self, agent_ids: List[int], state_id: int, actions: List[str],
                                is_winning_state: List[bool]):
+        print(agent_ids, state_id, actions, is_winning_state)
         result = False
         for transition in self.transitions[state_id]:
             is_good_transition = True

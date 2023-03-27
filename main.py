@@ -109,20 +109,16 @@ def asynchronous(filename):
 
 @verify.command()
 @click.option('--filename', default="simple_voting_1v_2c", prompt="Model file name", help="Model file name")
-@click.option('--version', default="init/updated", prompt="Version of model", help="Version of model")
-def ucl(filename, version):
+def ucl(filename):
     model = GlobalModelParser().parse(f"stv/models/asynchronous/specs/generated/{filename}.txt")
 
     start = time.process_time()
     model.generate(reduction=False)
     end = time.process_time()
 
-    if not model.clashfree(): 
-        raise Exception("ERROR: The updates are clashing.")
-    else: 
-        print(f"Generation time: {end - start}, #states: {model.states_count}")
-        result = model.verify_approximation_ucl(version)
-        print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
+    print(f"Generation time: {end - start}, #states: {model.states_count}")
+    result = model.verify_approximation_ucl()
+    print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
         #result = model.verify_approximation_ucl()
         #print(f"Lower approximation\nTime: {result[1]}, result: {result[0]}")
 
