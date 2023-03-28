@@ -874,40 +874,6 @@ class GlobalModel:
 
         return 0 in result, end - start, result, atl_model.strategy
 
-    def parse_prop(self, prop):
-        """Returns propositions in from_states and propositions in to_states into dict with boolean value for the prop stated in the list. 
-           Same structure as in list as in the first element in the from_states belongs to the first element in the to_states. """
-        result = {}
-        if "!" in prop:
-            result.update({prop[1]: False})
-        else:
-            result.update({prop: True })
-        return result
-
-    def parse_upgrade(self, count):
-        """function for dividing upgrades into three lists, from_states, agents and to_states which are returned."""
-        upgrades = self._formula_obj.upgrades[count]
-        #print(upgrades)
-        if len(upgrades) % 4 != 0:
-            raise Exception("Something is wrong with the updates")
-        else: 
-            indexes = []
-            from_states = []
-            agents = []
-            to_states = []
-            for element in upgrades:
-                indexes.append(upgrades.index(element))
-            c = 0
-            while c < len(indexes):
-                if c % 4 == 0:
-                    from_states.append(upgrades[c])
-                elif c % 4 == 1:
-                    agents.append(upgrades[c]) 
-                elif c % 4 == 2:
-                    to_states.append(upgrades[c])
-                c += 1
-            return from_states, agents, to_states
-
     def agents_to_dict(self):
         agents_id_dict = {}
         counter = 0
@@ -916,157 +882,11 @@ class GlobalModel:
             counter += 1
         return agents_id_dict
 
-    def clashfree(self): # checks if the updates clashes or not
-            counter = 0
-            while counter < len(self._formula_obj.upgradeType):
-                _, agents, _ = self.parse_upgrade(counter)
-                from_states, _ = self.get_upgrade_winning_states(counter)
-                temp_dict = {}
-                unique_agents = list(set(agents))
-                count = 0
-                for element in from_states:
-                    if agents[count] in temp_dict.keys():
-                        for el in element:
-                            temp_dict[agents[count]].append(el)
-                    else: 
-                        temp_dict[agents[count]] = element
-                    count += 1
-                if len(set(agents)) == 1: # checks if only one agent is granted superpowers.
-                    pass
-                else: # checks if two agents are granted superpowers from the same state.
-                    for value in temp_dict[unique_agents[0]]:
-                        for val in temp_dict[unique_agents[1]]:
-                            if value == val:
-                                print(temp_dict)
-                                return False
-                    else:
-                        pass
-                counter += 1
-            return True
-
-    def positive_transitions1(self, count):
-        """returns new transitions"""
-        from_states, to_states = self.get_upgrade_winning_states(count)
-        temp_transitions = []
-        new_transitions = []
-        actions = self.positive_action_pairs(count)
-        counter = 0
-        while counter < len(from_states):
-            temp_transitions.append([from_states[counter], to_states[counter]])
-            counter += 1
-        cart_of_states_per_agent = []
-        for element in temp_transitions:
-            cart_of_states = []
-            for el in itertools.product(*element):
-                cart_of_states.append(el)
-            cart_of_states_per_agent.append(cart_of_states)
-        counter = 0
-        for e in actions:
-            while counter < len(cart_of_states_per_agent):
-            #for e in actions:
-                print("e", e)
-                print(counter)
-                for element in cart_of_states_per_agent[counter]:
-                    for el in e:
-                        for element in cart_of_states_per_agent[counter]:
-                            new_transitions.append([element, el])
-                            print(new_transitions)
-                counter += 1
-        return new_transitions
-
-    def positive_transitions(self, count):
-        """returns new positive transitions for a given upgrade"""
-        from_states, to_states = self.get_upgrade_winning_states(count)
-        new_transitions = []
-        actions = self.positive_action_pairs(count)
-        print(actions)
-        update_counter = 0
-        while update_counter < len(from_states):
-            from_states_in_update = from_states[update_counter]
-            action_pairs_in_update = actions[update_counter]
-            to_states_in_updates = to_states[update_counter]
-            state_counter = 0
-            while state_counter < len(from_states_in_update):
-                from_state = from_states_in_update[state_counter]
-                strategies_in_state = action_pairs_in_update[state_counter]
-                for strategy in strategies_in_state:
-                    for to_state in to_states_in_updates:
-                        new_transitions.append([(from_state, to_state), strategy])
-                        print([(from_state, to_state), strategy])
-                state_counter += 1
-            update_counter +=1
-        return new_transitions
-
-    def positive_action_pairs(self, count):
-        """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers"""    
-        _, agents, _ = self.parse_upgrade(count)
-        agents_id_dict = self.agents_to_dict()
-        from_states, _ = self.get_upgrade_winning_states(count)
-        action_pairs = []
-        c = 0 
-        while c < len(from_states):
-            if agents_id_dict.get(agents[c]) == 0:
-                temp_list1 = []
-                for element in from_states[c]:
-                    temp_list = []
-                    for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
-                        temp_list.append([f"dict_powers{count}", el[0]])
-                    temp_list1.append(temp_list)
-                action_pairs.append(temp_list1)
-                c += 1
-            elif agents_id_dict.get(agents[c]) == 1:
-                temp_list1 = []
-                for element in from_states[c]:
-                    temp_list = []
-                    for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
-                        temp_list.append([el[0],f"dict_powers{count}"])
-                    temp_list1.append(temp_list)
-                action_pairs.append(temp_list1)
-                c += 1
-            else:
-                raise Exception("Only works when two agents")
-        return action_pairs 
-
     def updating_model(self): # alltid ytterst
         result = self.updating_model_upgrade_formula(self._formula_obj)
         print("ytterste laget", result)
         #updated_model = self._model.updated_model(new_transitions)
         return result
-
-    def updating_model_upgrade_formula1(self, upgrade_formula):
-        print("upgrade_formula", upgrade_formula)
-        if upgrade_formula.upgradeList:
-            new_transitions = []
-            gm =GlobalModel([it for it in self._local_models],
-                [it for it in self._reduction],
-                [it for it in self._bounded_vars],
-                [it for it in self._persistent],
-                [it for it in self._coalition],
-                [it for it in self._goal],
-                None, # Skip parsing
-                "",
-                False,
-                self._semantics,
-                self._initial)
-            gm._formula_obj = upgrade_formula
-            #print(gm._formula_obj.agents)
-            gm.coalition = upgrade_formula.agents
-            coalition = gm.agent_name_coalition_to_ids(gm._coalition)
-            gm._logicType = LogicType.UCL
-            gm.generate()
-            print("Viritual Model is generated")
-            #virtual_model = gm._model.to_atl_perfect()
-            #winning_states = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
-            winning_states = self.updating_model_simple_expression(upgrade_formula.coalitionExpression.simpleExpression)
-            #print("winning_states", winning_states)
-            new_transitions = gm.updating_model_upgrade_list(upgrade_formula.upgradeList)
-            print("new transitions in updating_model_upgrade_formula",new_transitions)
-            updated_gm = gm._model.updated_model(new_transitions)
-            result = updated_gm.ucl_next(coalition, winning_states)  
-            print("result", upgrade_formula, result, coalition, winning_states)
-            #coalition_expr = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
-            #print("dette kommer ut ",coalition_expr, result)
-            return result
         
     def updating_model_upgrade_formula(self, upgrade_formula):
         print("upgrade_formula", upgrade_formula)
@@ -1235,35 +1055,6 @@ class GlobalModel:
 
         return 0 in result, end - start, result, #updated_model.strategy                 
     
-
-    def get_upgrade_winning_states(self, count) -> List[int]:
-        """"Returns state.id on states where thruth-values to propositions are correct."""
-        from_states, _, to_states = self.parse_upgrade(count)
-        result_from_states = []
-        result_to_states = []
-        for state in from_states:
-            temp_list = []
-            state_dict = self.parse_prop(state)
-            for key, value in state_dict.items():
-                for state in self._states:
-                    if (key, value) in state.props.items():
-                        temp_list.append(state.id)
-                    elif key not in state.props.keys() and value == False:
-                        temp_list.append(state.id)
-            result_from_states.append(temp_list)
-        for state in to_states:
-            temp_list1 = []
-            state_dict = self.parse_prop(state)
-            for key, value in state_dict.items():
-                for state in self._states:
-                    for element in state.props.items():
-                        if (key, value) == element:
-                            temp_list1.append(state.id)
-                        elif key not in state.props.keys() and value == False:
-                            temp_list1.append(state.id)
-            result_to_states.append(temp_list1)
-        return result_from_states, result_to_states
-
     def verify_domino(self):
         agent_id = self.get_agent()
         strategy_comparer = StrategyComparer(self._model, self.get_actions()[agent_id])
