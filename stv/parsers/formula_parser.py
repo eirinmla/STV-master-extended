@@ -98,6 +98,10 @@ class Upgrade():
 
     def __str__(self):
         return '[' + ', '.join(map(str, self.updates)) + ']'
+    
+    @property
+    def type(self):
+        return self.updates[0].upgradeType
 
 class Update():
     fromState = None

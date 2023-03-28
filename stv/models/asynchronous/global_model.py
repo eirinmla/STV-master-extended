@@ -1106,17 +1106,22 @@ class GlobalModel:
         print("upgrade_list", upgrade_list)
         new_transitions = []
         for upgrade in upgrade_list.upgrades:
-            new_transitions += self.updating_model_upgrade(upgrade)
-        return new_transitions
-
+            if upgrade.type == UpgradeType.P:
+                new_transitions = self.updating_model_upgrade_positive(upgrade)
+                print(new_transitions)
+                updated_gm = gm._model.updated_model(new_transitions)
+            elif upgrade.type == UpgradeType.N:
+                pass
+        #print("disse transitions blir lagt til av gangen", new_transitions)
+        return updated_gm
     
-    def updating_model_upgrade(self, upgrade):
-        print("upgrade", upgrade)
+    def updating_model_upgrade_positive(self, upgrade):
+        #print("upgrade", upgrade)
         new_transitions_list = []
         granted_powers_dict = {}
 
         for update in upgrade.updates:
-            from_states_ids, new_transitions = self.updating_model_update(update)
+            from_states_ids, new_transitions = self.updating_model_update_positive(update)
             if str(update.agent) in granted_powers_dict:
                 for element in from_states_ids:
                     granted_powers_dict[str(update.agent)].append(element)
@@ -1128,9 +1133,16 @@ class GlobalModel:
         self.test_clashfreeness(granted_powers_dict)
         return new_transitions_list
 
+    def updating_model_upgrade_negative(self, upgrade):
+        pass
 
-    def updating_model_update(self, update):
-        print("update", update)
+
+    def updating_model_update_negative(self, update):
+        pass
+
+
+    def updating_model_update_positive(self, update):
+        #print("update", update)
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
         print("fromstates and tostates in update", from_state_ids, to_state_ids)
