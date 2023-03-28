@@ -1229,8 +1229,9 @@ class GlobalModel:
               "\nThe strategy is:", init_model.strategy, 
               "\nTime spent model checking initial model:", start - end, "\n")
         
-        start = time.process_time() 
-        result = self.updating_model()
+        start = time.process_time()
+        if self._formula_obj.upgradeList:
+            result = self.updating_model()
         end = time.process_time()    
         #result = updated_model.ucl_next(coalition, winning_states)
         
