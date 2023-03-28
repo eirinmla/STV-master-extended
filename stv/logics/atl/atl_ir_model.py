@@ -365,7 +365,7 @@ class ATLIrModel:
                 #continue
 
             for action in itertools.product(*actions):
-                print(action)
+                #print(action)
                 if action == "*":
                     continue
 
@@ -436,7 +436,7 @@ class ATLIrModel:
 
     def is_reachable_by_agents(self, agent_ids: List[int], state_id: int, actions: List[str],
                                is_winning_state: List[bool]):
-        print(agent_ids, state_id, actions, is_winning_state)
+        #print(agent_ids, state_id, actions, is_winning_state)
         result = False
         for transition in self.transitions[state_id]:
             is_good_transition = True
