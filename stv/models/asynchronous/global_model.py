@@ -1071,7 +1071,6 @@ class GlobalModel:
     def updating_model_upgrade_formula(self, upgrade_formula):
         print("upgrade_formula", upgrade_formula)
         if upgrade_formula.upgradeList:
-            new_transitions = []
             gm =GlobalModel([it for it in self._local_models],
                 [it for it in self._reduction],
                 [it for it in self._bounded_vars],
@@ -1085,24 +1084,20 @@ class GlobalModel:
                 self._initial)
             gm._formula_obj = upgrade_formula
             gm.coalition = upgrade_formula.agents
-            coalition = gm.agent_name_coalition_to_ids(gm._coalition)
             gm._logicType = LogicType.UCL
             gm.generate()
             print("Viritual Model is generated")
-            new_transitions = gm.updating_model_upgrade_list(upgrade_formula.upgradeList)
-            winning_states = self.updating_model_simple_expression(upgrade_formula.coalitionExpression.simpleExpression)
-            
-            print("new transitions in updating_model_upgrade_formula",new_transitions)
-            updated_gm = gm._model.updated_model(new_transitions)
-            result = updated_gm.ucl_next(coalition, winning_states)  
-            print("result", upgrade_formula, result, coalition, winning_states)
+
+            updated_gm = gm.updating_model_upgrade_list(upgrade_formula.upgradeList, gm)
+            result = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression, updated_gm)
+            print("result", upgrade_formula, result)
             return result
 
         else: 
             result = self.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
             return result
 
-    def updating_model_upgrade_list(self, upgrade_list):
+    def updating_model_upgrade_list(self, upgrade_list, gm):
         print("upgrade_list", upgrade_list)
         new_transitions = []
         for upgrade in upgrade_list.upgrades:
@@ -1150,15 +1145,16 @@ class GlobalModel:
         new_transitions = action_pairs
         return from_state_ids, new_transitions
 
-    def updating_model_coalition_expression(self, coalition_expression):
+    def updating_model_coalition_expression(self, coalition_expression, current_model=None):
         print("coalition_expression", coalition_expression)
         if coalition_expression.coalitionAgents:
-            winning_states = self.updating_model_simple_expression(coalition_expression.simpleExpression)
+            winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression))
             coalition = self.agent_name_coalition_to_ids(coalition_expression.coalitionAgents)
             print("winning_states", winning_states)
             print("coalition", coalition)
-            atl_model = self._model.to_atl_perfect()
-            result = atl_model.ucl_next(coalition, winning_states)
+            if current_model == None: 
+                current_model = self._model.to_atl_perfect
+            result = current_model.ucl_next(coalition, winning_states) # vet ikke om denne egentlig virker som den skal
             print("result from coalition expression", result)
             return result
         else:
