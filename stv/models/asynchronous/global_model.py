@@ -12,6 +12,8 @@ from stv.comparing_strats import StrategyComparer
 from stv.parsers import FormulaParser, TemporalOperator, UpgradeType
 
 
+count = 0 
+
 class LogicType(Enum):
     ATL = "ATL"
     CTL = "CTL"
@@ -1169,22 +1171,25 @@ class GlobalModel:
 
     def get_positive_action_pairs(self, from_states, to_states, agent):
         """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers and from and to states for the action pairs"""    
+        global count
         agents_id_dict = self.agents_to_dict()
         action_pairs = []
         if agents_id_dict.get(str(agent)) == 0:
             for element in from_states:
-                for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
-                    for elem in to_states:
-                        action_pairs.append([element, elem, [f"dict_powers", el[0]]])
+                for elem in to_states:
+                    for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
+                        action_pairs.append([element, elem, [f"dict_powers{count}", el[0]]])
+                    count += 1
         elif agents_id_dict.get(str(agent)) == 1:
             for element in from_states:
-                for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
-                    for elem in to_states:
-                        action_pairs.append([element, elem, [el[0],f"dict_powers"]])
+                for elem in to_states:
+                    for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
+                        action_pairs.append([element, elem, [el[0],f"dict_powers{count}"]])
+                    count += 1
         else:
             raise Exception("Only works when two agents")
-        print("originale action pairs", action_pairs)
-        return action_pairs 
+        # print("originale action pairs", action_pairs)
+        return action_pairs
 
 
     def test_clashfreeness(self, granted_powers_dict):
