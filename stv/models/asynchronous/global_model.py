@@ -991,7 +991,7 @@ class GlobalModel:
         result = []
         for state in self._states:
             if expr.left not in state.props and expr.right == "False": # if prop not stated in state and value is false, append state.id because props that is not stated is allways false in the state.
-                result.append(state.id)
+               state.set_prop(expr.left, False)
             if expr.evaluate(state.props):
                 result.append(state.id)
 
