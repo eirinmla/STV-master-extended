@@ -226,7 +226,10 @@ class FormulaParser(Parser):
         if self.peekNextChar() == "<":
             formula.coalitionAgents = self.__parseFormulaAgents()
         
-        formula.simpleExpression = self.__parseFormulaExpression()
+        if self.peekNextChar() == "(":
+            formula.simpleExpression = self.__parseFormulaExpression()
+        else:
+            formula.simpleExpression = self.__parseUpgradeFormula()
 
         return formula
 

@@ -1,6 +1,6 @@
 import itertools
 
-from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier
+from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier, SimpleExpression
 from typing import List, Dict, Any, Set, Tuple
 from enum import Enum
 import time
@@ -974,7 +974,7 @@ class GlobalModel:
             print("coalition", coalition)
             if current_model == None: 
                 current_model = self._model.to_atl_perfect
-            result = current_model.ucl_next(coalition, winning_states) # vet ikke om denne egentlig virker som den skal
+            result = current_model.ucl_next(coalition, winning_states)
             print("result from coalition expression", result)
             return result
         else:
@@ -982,10 +982,13 @@ class GlobalModel:
             return result
 
     def updating_model_simple_expression(self, simple_expression):
-        print("simple_expression", simple_expression)
-        states_with_props = self.get_states_with_props(simple_expression)
-        print("states_with_props", states_with_props)
-        return states_with_props
+        if isinstance(simple_expression, SimpleExpression):
+            print("simple_expression", simple_expression)
+            states_with_props = self.get_states_with_props(simple_expression)
+            print("states_with_props", states_with_props)
+            return states_with_props
+        else: 
+            return self.updating_model_upgrade_formula(simple_expression)
 
     def get_states_with_props(self, expr) -> List[int]:
         result = []
@@ -1042,16 +1045,6 @@ class GlobalModel:
     def verify_approximation_ucl(self): # verifying formulas in models
 
         init_model = self._model.to_atl_perfect()
-        winning_states = set(self.get_formula_winning_states())
-        coalition = self.agent_name_coalition_to_ids(self._coalition)
-        start = time.process_time()
-        result = init_model.ucl_next(coalition, winning_states)
-        end = time.process_time() 
-        print("\nModel checking", self._formula_obj.coalitionExpression, "in initial model."
-              "\nThe result is:", 0 in result, 
-              "\nThe strategy is:", init_model.strategy, 
-              "\nTime spent model checking initial model:", start - end, "\n")
-        
         forcing_actions = self.get_forcing_actions(init_model)
         print(forcing_actions)
         start = time.process_time()
@@ -1104,6 +1097,7 @@ class GlobalModel:
 
     def get_formula_winning_states(self) -> List[int]:
         expr = self._formula_obj.expression
+        print(expr)
         result = []
         for state in self._states:
             if expr.evaluate(state.props):
