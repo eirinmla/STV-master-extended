@@ -1031,6 +1031,13 @@ class GlobalModel:
         if len(values) != value_count:
             raise Exception("Two or more updates are clashing.")
 
+    def get_forcing_actions(self, model):
+        strategies_in_states = {}
+        for state in self._states:
+            pre_state = model.pre_states[state.id]
+            for pre in pre_state:
+                strategies_in_states[(pre, state.id)] = [self._model.get_possible_strategies(pre)]
+        return strategies_in_states
 
     def verify_approximation_ucl(self): # verifying formulas in models
 
@@ -1045,6 +1052,8 @@ class GlobalModel:
               "\nThe strategy is:", init_model.strategy, 
               "\nTime spent model checking initial model:", start - end, "\n")
         
+        forcing_actions = self.get_forcing_actions(init_model)
+        print(forcing_actions)
         start = time.process_time()
         if self._formula_obj.upgradeList:
             result = self.updating_model()
