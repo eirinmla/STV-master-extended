@@ -255,6 +255,18 @@ class SimpleModel:
 
         return list(possible_actions)
     
+    def get_full_transitions(self):
+        dict_actions = {}
+        n = 0
+        while n < len(self.states):
+            for transition in self._graph[n]:
+                if (n, transition.next_state) not in dict_actions: 
+                    dict_actions[(n, transition.next_state)] = (tuple(transition.actions))
+                else:
+                    dict_actions[(n, transition.next_state)].append(tuple(transition.actions))
+            n += 1
+        return dict_actions
+
     def to_atl_perfect(self) -> ATLIrModel:
         """
         Creates Alternating-Time Temporal Logic model with perfect information
