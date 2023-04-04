@@ -926,7 +926,9 @@ class GlobalModel:
                 print(new_transitions)
                 updated_gm = gm._model.updated_model(new_transitions)
             elif upgrade.type == UpgradeType.N:
-                pass
+                preserved_transitions = self.updating_model_upgrade_negative(upgrade)
+                updated_gm = gm._model.to_atl_perfect() # må endre transitions
+                self.test_negative_clash(preserved_transitions)
         #print("disse transitions blir lagt til av gangen", new_transitions)
         return updated_gm
     
@@ -949,11 +951,48 @@ class GlobalModel:
         return new_transitions_list
 
     def updating_model_upgrade_negative(self, upgrade):
-        pass
+        preserved_transitions_list = []
+        maybe_list = {0: [], 1: []}
+        for update in upgrade.updates:
+            preserved_transitions, maybe_preserved_transitions = self.updating_model_update_negative(update)
+            if 0 in maybe_preserved_transitions.keys():
+                maybe_list[0].append(maybe_preserved_transitions[0])
+            if 1 in maybe_preserved_transitions.keys():
+                maybe_list[1].append(maybe_preserved_transitions[1])
+            preserved_transitions_list += preserved_transitions
+        for element in maybe_list[0]:
+            for el in maybe_list[1]:
+                if element == el:
+                    preserved_transitions_list.append(element)
+        print("preserved", preserved_transitions_list)
+        return preserved_transitions_list
 
 
     def updating_model_update_negative(self, update):
-        pass
+        preserved_transitions = []
+        maybe_preserved_transitions = {}
+        forcing_actions_agent1, forcing_actions_agent2 = self.get_forcing_actions()
+        from_state_ids = self.updating_model_upgrade_formula(update.fromState)
+        to_state_ids = self.updating_model_upgrade_formula(update.toState)
+        agent = self.agent_name_to_id(str(update.agent))
+        if agent == 0:
+            for element in forcing_actions_agent1:
+                for state in from_state_ids:
+                    for s in to_state_ids:
+                        if (state, s) == element[0] and element not in forcing_actions_agent2:
+                            preserved_transitions.append(element)
+                        elif (state, s) == element[0] and element in forcing_actions_agent2:
+                            maybe_preserved_transitions[0] = element
+        elif agent == 1:
+            for element in forcing_actions_agent2:
+                for state in from_state_ids:
+                    for s in to_state_ids:
+                        if (state, s) == element[0] and element not in forcing_actions_agent1:
+                            preserved_transitions.append(element)
+                        elif (state, s) == element[0] and element in forcing_actions_agent1:
+                            maybe_preserved_transitions[1] = element
+
+        return preserved_transitions, maybe_preserved_transitions
 
 
     def updating_model_update_positive(self, update):
@@ -1034,19 +1073,104 @@ class GlobalModel:
         if len(values) != value_count:
             raise Exception("Two or more updates are clashing.")
 
-    def get_forcing_actions(self, model):
-        strategies_in_states = {}
+    def test_negative_clash(self, preserved_transitions):
+        remaining_transitions = self.get_remaining_transitions(preserved_transitions)
+        from_states_list = []
+        for element in remaining_transitions:
+            from_states_list.append(element[0][0])
         for state in self._states:
-            pre_state = model.pre_states[state.id]
-            for pre in pre_state:
-                strategies_in_states[(pre, state.id)] = [self._model.get_possible_strategies(pre)]
-        return strategies_in_states
+            if state.id not in from_states_list: 
+                raise Exception("There has to be at least one out-going arrow per state.")
+            
+        state_action_dict = {}
+        action_pairs_counter = 0
+        for state in self._states:
+            actions_agent1 = [i[0] for i in self._model.get_possible_strategies_for_coalition(state.id, [0])]
+            actions_agent2 = [i[0] for i in self._model.get_possible_strategies_for_coalition(state.id, [1])]
+            state_action_dict[state.id] = []
+            for elm in actions_agent1:
+                for el in actions_agent2:
+                    state_action_dict[state.id].append((elm, el))
+                    action_pairs_counter += 1
+
+        test_count = 0
+        for element in remaining_transitions:
+            for key, value in state_action_dict.items():
+                if key == element[0][0] and element[1] in value:
+                    test_count += 1
+        if action_pairs_counter != test_count:
+            raise Exception("There is not enough arrows preserved to be a valid concurrent game model.")
+             
+            
+    def get_remaining_transitions(self, preserved_transitions): 
+        all_transitions = self._model.get_full_transitions()
+
+        all_transitions_list = []
+        for key, value in all_transitions.items():
+            all_transitions_list.append([key, value])
+
+        forcing_act1, forcing_act2 = self.get_forcing_actions()
+        forcing_actions = []
+        for element in forcing_act1:
+            forcing_actions.append(element)
+        for element in forcing_act2:
+            forcing_actions.append(element)
+
+        removed_transitions = []
+        for element in forcing_actions:
+            if element not in preserved_transitions:
+                removed_transitions.append(element)
+
+        remaining_transitions = []
+        for item in all_transitions_list:
+            if item not in removed_transitions:
+                remaining_transitions.append(item)
+
+        return remaining_transitions
+
+
+    def get_forcing_actions(self):
+        forcing_actions_agent1 = [] # agent with index 0 in actions is the same agent that has agent-id 0
+        forcing_actions_agent2 = [] # agent with index 1 in actions is the same agent that has agent-id 1
+        dict_actions = self._model.get_full_transitions()
+        from_states =  []
+        for key in dict_actions.keys():
+            from_states.append(key[0])
+        for state in set(from_states): # hele denne virker kun dersom det bare er en action til hver from_state, to_state tuppel
+            if from_states.count(state) == 1:
+                for key, value in dict_actions.items():
+                    if state == key[0]:
+                        forcing_actions_agent1.append([key, value])
+                        forcing_actions_agent2.append([key, value])
+            elif from_states.count(state) == 2:
+                action_pairs = []
+                for key, value in dict_actions.items():
+                    if key[0] == state:
+                        action_pairs.append(value)
+                action_agent1 = []
+                action_agent2 = []
+                for action in action_pairs:
+                    action_agent1.append(action[0])
+                    action_agent2.append(action[1])
+                if len(set(action_agent1)) == 1 and len(set(action_agent2)) == 2:
+                    for key, value in dict_actions.items():
+                        if state == key[0]:
+                            forcing_actions_agent2.append([key, value])
+                elif len(set(action_agent1)) == 2 and len(set(action_agent2)) == 1:
+                    for key, value in dict_actions.items():
+                        if state == key[0]:
+                            forcing_actions_agent1.append([key, value])
+                #print("action_agent1:", action_agent1, "\naction_agent2:", action_agent2)
+            else: 
+                pass
+                
+        #print("forcing actions agent1: ", forcing_actions_agent1, "\nforcing actions agent2: ", forcing_actions_agent2)
+        return forcing_actions_agent1, forcing_actions_agent2
 
     def verify_approximation_ucl(self): # verifying formulas in models
 
-        init_model = self._model.to_atl_perfect()
-        forcing_actions = self.get_forcing_actions(init_model)
-        print(forcing_actions)
+        #init_model = self._model.to_atl_perfect()
+        #forcing_actions_agent1, forcing_actions_agent2 = self.get_forcing_actions()
         start = time.process_time()
         if self._formula_obj.upgradeList:
             result = self.updating_model()
