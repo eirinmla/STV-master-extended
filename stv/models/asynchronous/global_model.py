@@ -927,8 +927,10 @@ class GlobalModel:
                 updated_gm = gm._model.updated_model(new_transitions)
             elif upgrade.type == UpgradeType.N:
                 preserved_transitions = self.updating_model_upgrade_negative(upgrade)
+                remaining_transitions = self.get_remaining_transitions(preserved_transitions) # including preserved forcing actions and other non-forcing actions
+                print(remaining_transitions)
                 updated_gm = gm._model.to_atl_perfect() # må endre transitions
-                self.test_negative_clash(preserved_transitions)
+                self.test_negative_clash(remaining_transitions)
         #print("disse transitions blir lagt til av gangen", new_transitions)
         return updated_gm
     
@@ -964,7 +966,6 @@ class GlobalModel:
             for el in maybe_list[1]:
                 if element == el:
                     preserved_transitions_list.append(element)
-        print("preserved", preserved_transitions_list)
         return preserved_transitions_list
 
 
@@ -1073,8 +1074,7 @@ class GlobalModel:
         if len(values) != value_count:
             raise Exception("Two or more updates are clashing.")
 
-    def test_negative_clash(self, preserved_transitions):
-        remaining_transitions = self.get_remaining_transitions(preserved_transitions)
+    def test_negative_clash(self, remaining_transitions):
         from_states_list = []
         for element in remaining_transitions:
             from_states_list.append(element[0][0])
@@ -1093,12 +1093,23 @@ class GlobalModel:
                     state_action_dict[state.id].append((elm, el))
                     action_pairs_counter += 1
 
+        remaining_transitions_dict = {}
+        count = 0
         test_count = 0
-        for element in remaining_transitions:
-            for key, value in state_action_dict.items():
-                if key == element[0][0] and element[1] in value:
-                    test_count += 1
-        if action_pairs_counter != test_count:
+        while count < len(self._states):
+            for el in remaining_transitions:
+                if el[0][0] == count:
+                    if count not in remaining_transitions_dict.keys():
+                        remaining_transitions_dict[count] = el[1]
+                    else: remaining_transitions_dict[count] += el[1]
+            count += 1
+        
+        for key, value in state_action_dict.items():
+            for k, v in remaining_transitions_dict.items():
+                if key == k:
+                    test_count += len(set(value).intersection(set(v)))
+                   
+        if action_pairs_counter > test_count:
             raise Exception("There is not enough arrows preserved to be a valid concurrent game model.")
              
             
@@ -1130,41 +1141,39 @@ class GlobalModel:
 
 
     def get_forcing_actions(self):
-        forcing_actions_agent1 = [] # agent with index 0 in actions is the same agent that has agent-id 0
-        forcing_actions_agent2 = [] # agent with index 1 in actions is the same agent that has agent-id 1
         dict_actions = self._model.get_full_transitions()
-        from_states =  []
-        for key in dict_actions.keys():
-            from_states.append(key[0])
-        for state in set(from_states): # hele denne virker kun dersom det bare er en action til hver from_state, to_state tuppel
-            if from_states.count(state) == 1:
+        forcing_actions_agent1 = []
+        forcing_actions_agent2 = []
+        count = 0
+        while count < self._agents_count:
+            for state in self._states:
+                temp_list = []
                 for key, value in dict_actions.items():
-                    if state == key[0]:
-                        forcing_actions_agent1.append([key, value])
-                        forcing_actions_agent2.append([key, value])
-            elif from_states.count(state) == 2:
-                action_pairs = []
+                    if state.id == key[0]:
+                        temp_set = set()
+                        for val in value:
+                            temp_set.add(val[count])
+                        temp_list.append(temp_set)
+                if len(temp_list) > 1:
+                    temp = set.intersection(*temp_list)
+                else:
+                    temp = []
                 for key, value in dict_actions.items():
-                    if key[0] == state:
-                        action_pairs.append(value)
-                action_agent1 = []
-                action_agent2 = []
-                for action in action_pairs:
-                    action_agent1.append(action[0])
-                    action_agent2.append(action[1])
-                if len(set(action_agent1)) == 1 and len(set(action_agent2)) == 2:
-                    for key, value in dict_actions.items():
-                        if state == key[0]:
-                            forcing_actions_agent2.append([key, value])
-                elif len(set(action_agent1)) == 2 and len(set(action_agent2)) == 1:
-                    for key, value in dict_actions.items():
-                        if state == key[0]:
-                            forcing_actions_agent1.append([key, value])
-                #print("action_agent1:", action_agent1, "\naction_agent2:", action_agent2)
-            else: 
-                pass
-                
-        #print("forcing actions agent1: ", forcing_actions_agent1, "\nforcing actions agent2: ", forcing_actions_agent2)
+                    if state.id == key[0]:
+                        for val in value:
+                            if temp == []:
+                                if count == 0:
+                                    forcing_actions_agent1.append([key, val])
+                                elif count == 1:
+                                    forcing_actions_agent2.append([key, val])
+                            else: 
+                                for element in temp:
+                                    if element not in val:
+                                        if count == 0:
+                                            forcing_actions_agent1.append([key, val])
+                                        elif count == 1:
+                                            forcing_actions_agent2.append([key, val])
+            count += 1
         return forcing_actions_agent1, forcing_actions_agent2
 
     def verify_approximation_ucl(self): # verifying formulas in models

@@ -261,7 +261,7 @@ class SimpleModel:
         while n < len(self.states):
             for transition in self._graph[n]:
                 if (n, transition.next_state) not in dict_actions: 
-                    dict_actions[(n, transition.next_state)] = (tuple(transition.actions))
+                    dict_actions[(n, transition.next_state)] = [(tuple(transition.actions))]
                 else:
                     dict_actions[(n, transition.next_state)].append(tuple(transition.actions))
             n += 1
