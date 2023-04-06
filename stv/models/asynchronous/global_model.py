@@ -1100,10 +1100,10 @@ class GlobalModel:
             for el in remaining_transitions:
                 if el[0][0] == count:
                     if count not in remaining_transitions_dict.keys():
-                        remaining_transitions_dict[count] = el[1]
-                    else: remaining_transitions_dict[count] += el[1]
+                        remaining_transitions_dict[count] = [(el[1])]
+                    else: remaining_transitions_dict[count].append((el[1]))
             count += 1
-        
+
         for key, value in state_action_dict.items():
             for k, v in remaining_transitions_dict.items():
                 if key == k:
