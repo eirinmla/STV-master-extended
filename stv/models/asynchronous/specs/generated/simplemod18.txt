@@ -1,0 +1,18 @@
+SEMANTICS: synchronous
+
+Agent a:
+init: state1
+nact: state1 -> state1 
+nact: state2 -> state2 
+
+Agent b:
+init: state1
+nact: state1 -> state1 
+nact: state2 -> state2 
+act: state1 -> state2 [p=True]
+
+PERSISTENT: [p]
+INITIAL: [p = False]
+COALITION: [a]
+LOGIC: UCL 
+FORMULA: {[((p = True), a, (p = True))+, ((p = True), a, (p = False))+], [((q = False), a, (q = False))-]}<<a>>(p = False)
