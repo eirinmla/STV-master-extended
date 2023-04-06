@@ -928,7 +928,7 @@ class GlobalModel:
             elif upgrade.type == UpgradeType.N:
                 preserved_transitions = self.updating_model_upgrade_negative(upgrade)
                 remaining_transitions = self.get_remaining_transitions(preserved_transitions) # including preserved forcing actions and other non-forcing actions
-                print(remaining_transitions)
+                print("All preserved transitions:", remaining_transitions)
                 updated_gm = gm._model.to_atl_perfect() # må endre transitions
                 self.test_negative_clash(remaining_transitions)
         #print("disse transitions blir lagt til av gangen", new_transitions)
@@ -1115,27 +1115,31 @@ class GlobalModel:
             
     def get_remaining_transitions(self, preserved_transitions): 
         all_transitions = self._model.get_full_transitions()
-
-        all_transitions_list = []
-        for key, value in all_transitions.items():
-            all_transitions_list.append([key, value])
-
         forcing_act1, forcing_act2 = self.get_forcing_actions()
+
         forcing_actions = []
         for element in forcing_act1:
             forcing_actions.append(element)
         for element in forcing_act2:
             forcing_actions.append(element)
 
+        forcing_actions_dict = {}
+        for element in forcing_actions:
+            if element[0] not in forcing_actions_dict:
+                forcing_actions_dict[element[0]] = [element[1]]
+            else: 
+                forcing_actions_dict[element[0]].append(element[1])
+
         removed_transitions = []
         for element in forcing_actions:
             if element not in preserved_transitions:
                 removed_transitions.append(element)
-
+                
         remaining_transitions = []
-        for item in all_transitions_list:
-            if item not in removed_transitions:
-                remaining_transitions.append(item)
+        for key, value in all_transitions.items():
+            for val in value:
+                if [key, val] not in removed_transitions:
+                    remaining_transitions.append([key, val])
 
         return remaining_transitions
 
@@ -1144,6 +1148,7 @@ class GlobalModel:
         dict_actions = self._model.get_full_transitions()
         forcing_actions_agent1 = []
         forcing_actions_agent2 = []
+        non_forcing_actions = set()
         count = 0
         while count < self._agents_count:
             for state in self._states:
@@ -1155,24 +1160,21 @@ class GlobalModel:
                             temp_set.add(val[count])
                         temp_list.append(temp_set)
                 if len(temp_list) > 1:
-                    temp = set.intersection(*temp_list)
-                else:
-                    temp = []
+                    non_forcing_actions = set.intersection(*temp_list)
                 for key, value in dict_actions.items():
                     if state.id == key[0]:
                         for val in value:
-                            if temp == []:
+                            if non_forcing_actions == set():
                                 if count == 0:
                                     forcing_actions_agent1.append([key, val])
                                 elif count == 1:
                                     forcing_actions_agent2.append([key, val])
                             else: 
-                                for element in temp:
-                                    if element not in val:
-                                        if count == 0:
-                                            forcing_actions_agent1.append([key, val])
-                                        elif count == 1:
-                                            forcing_actions_agent2.append([key, val])
+                                if val[count] not in non_forcing_actions:
+                                    if count == 0:
+                                        forcing_actions_agent1.append([key, val])
+                                    elif count == 1:
+                                        forcing_actions_agent2.append([key, val])
             count += 1
         return forcing_actions_agent1, forcing_actions_agent2
 
