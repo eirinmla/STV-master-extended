@@ -126,6 +126,37 @@ class SimpleModel:
         for agent_id in range(self._no_agents):
             self._actions[agent_id].add(actions[agent_id])
 
+    
+    def remove_transition(self, from_state_id: int, to_state_id: int, actions: List[str], time: int = 1):
+        """
+        Removes transition between two states in the model
+        :param from_state_id: identifier of the first state
+        :param to_state_id: identifier of the second state
+        :param actions: List of actions for the transition
+        :return: None
+        """
+        if "*" in actions:
+            pass
+        else: 
+            # self.resize_to_state(max(from_state_id, to_state_id))
+        # if self.is_unique_transition(Transition(to_state_id, actions), from_state_id):
+            for transition in self._graph[from_state_id]:
+                if transition.actions == actions and transition.next_state == to_state_id:
+                    self._graph[from_state_id].remove(transition)
+            self._pre_image[to_state_id].remove(from_state_id)
+            self._no_transitions -= 1
+            self._remove_actions(actions)
+
+    def _remove_actions(self, actions: List[str]):
+        """
+        Remove actions from the transition to the model
+        :param actions: list of actions to add, one per agent
+        :return: None
+        """ 
+        for agent_id in range(self._no_agents):
+            if actions[agent_id] in self._actions[agent_id]:
+                self._actions[agent_id].remove(actions[agent_id])
+
     @deprecated
     def is_unique_transition(self, transition: Transition, state_id: int) -> bool:
         for tr in self._graph[state_id]:
@@ -279,7 +310,7 @@ class SimpleModel:
 
     def updated_model(self, new_transitions) -> ATLIrModel:
         """
-        Updates the Alternating-Time Temporal Logic model with perfect information with dictatorial transitions
+        Updates positively the Alternating-Time Temporal Logic model with perfect information with dictatorial transitions
         transitions as list will be in the form [[from state, to state, actions(list)],[...]]
         :return: ATLIr model
         """
@@ -291,6 +322,19 @@ class SimpleModel:
         ATLIrModel.print_model(updated_model) # only a print
         return updated_model
 
+
+    def updated_model_negative(self, removed_transitions) -> ATLIrModel:
+        """
+        Negative Updates the Alternating-Time Temporal Logic model with perfect information removing transitions that is not stated to be preserved.
+        Removed transitions as list will be in the form [[(from state, to state), actions(list)],[...]]
+        :return: ATLIr model
+        """
+        for transition in removed_transitions:
+            self.remove_transition(transition[0][0], transition[0][1], transition[1])
+        updated_model = ATLIrModel(self._no_agents)
+        updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
+        ATLIrModel.print_model(updated_model) # only a print
+        return updated_model
 
     def to_atl_imperfect(self) -> ATLirModel:
         """

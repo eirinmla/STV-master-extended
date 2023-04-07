@@ -927,9 +927,10 @@ class GlobalModel:
                 updated_gm = gm._model.updated_model(new_transitions)
             elif upgrade.type == UpgradeType.N:
                 preserved_transitions = self.updating_model_upgrade_negative(upgrade)
-                remaining_transitions = self.get_remaining_transitions(preserved_transitions) # including preserved forcing actions and other non-forcing actions
+                remaining_transitions, removed_transitions = self.get_remaining_transitions(preserved_transitions) # including preserved forcing actions and other non-forcing actions
                 print("All preserved transitions:", remaining_transitions)
-                updated_gm = gm._model.to_atl_perfect() # må endre transitions
+                print("Removed transitions", removed_transitions)
+                updated_gm = gm._model.updated_model_negative(removed_transitions) # må endre transitions
                 self.test_negative_clash(remaining_transitions)
         #print("disse transitions blir lagt til av gangen", new_transitions)
         return updated_gm
@@ -1013,7 +1014,7 @@ class GlobalModel:
             print("winning_states", winning_states)
             print("coalition", coalition)
             if current_model == None: 
-                current_model = self._model.to_atl_perfect
+                current_model = self._model.to_atl_perfect()
             result = current_model.ucl_next(coalition, winning_states)
             print("result from coalition expression", result)
             return result
@@ -1130,18 +1131,23 @@ class GlobalModel:
             else: 
                 forcing_actions_dict[element[0]].append(element[1])
 
+        temp_removed_transitions = []
+        for element in forcing_actions:
+            if element not in preserved_transitions:
+                temp_removed_transitions.append(element)
+        
         removed_transitions = []
         for element in forcing_actions:
             if element not in preserved_transitions:
-                removed_transitions.append(element)
+                removed_transitions.append([element[0], [element[1][0], element[1][1]]])
                 
         remaining_transitions = []
         for key, value in all_transitions.items():
             for val in value:
-                if [key, val] not in removed_transitions:
+                if [key, val] not in temp_removed_transitions:
                     remaining_transitions.append([key, val])
 
-        return remaining_transitions
+        return remaining_transitions, removed_transitions
 
 
     def get_forcing_actions(self):
@@ -1183,8 +1189,8 @@ class GlobalModel:
         #init_model = self._model.to_atl_perfect()
         #forcing_actions_agent1, forcing_actions_agent2 = self.get_forcing_actions()
         start = time.process_time()
-        if self._formula_obj.upgradeList:
-            result = self.updating_model()
+        #if self._formula_obj.upgradeList:
+        result = self.updating_model()
         end = time.process_time()    
         #result = updated_model.ucl_next(coalition, winning_states)
         
