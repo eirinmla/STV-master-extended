@@ -888,9 +888,9 @@ class GlobalModel:
         #updated_model = self._model.updated_model(new_transitions)
         return result
         
-    def updating_model_upgrade_formula(self, upgrade_formula):
+    def updating_model_upgrade_formula(self, upgrade_formula, gm=None):
         print("upgrade_formula", upgrade_formula)
-        if upgrade_formula.upgradeList:
+        if upgrade_formula.upgradeList and gm==None:
             gm =GlobalModel([it for it in self._local_models],
                 [it for it in self._reduction],
                 [it for it in self._bounded_vars],
@@ -908,6 +908,12 @@ class GlobalModel:
             gm.generate()
             print("Viritual Model is generated")
 
+            updated_gm = gm.updating_model_upgrade_list(upgrade_formula.upgradeList, gm)
+            result = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression, updated_gm)
+            print("result", upgrade_formula, result)
+            return result
+        
+        elif upgrade_formula.upgradeList and gm!=None:
             updated_gm = gm.updating_model_upgrade_list(upgrade_formula.upgradeList, gm)
             result = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression, updated_gm)
             print("result", upgrade_formula, result)
@@ -1009,7 +1015,7 @@ class GlobalModel:
     def updating_model_coalition_expression(self, coalition_expression, current_model=None):
         print("coalition_expression", coalition_expression)
         if coalition_expression.coalitionAgents:
-            winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression))
+            winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression, self))
             coalition = self.agent_name_coalition_to_ids(coalition_expression.coalitionAgents)
             print("winning_states", winning_states)
             print("coalition", coalition)
@@ -1019,17 +1025,17 @@ class GlobalModel:
             print("result from coalition expression", result)
             return result
         else:
-            result = self.updating_model_simple_expression(coalition_expression.simpleExpression)
+            result = self.updating_model_simple_expression(coalition_expression.simpleExpression, self)
             return result
 
-    def updating_model_simple_expression(self, simple_expression):
+    def updating_model_simple_expression(self, simple_expression, gm):
         if isinstance(simple_expression, SimpleExpression):
             print("simple_expression", simple_expression)
             states_with_props = self.get_states_with_props(simple_expression)
             print("states_with_props", states_with_props)
             return states_with_props
         else: 
-            return self.updating_model_upgrade_formula(simple_expression)
+            return self.updating_model_upgrade_formula(simple_expression, gm)
 
     def get_states_with_props(self, expr) -> List[int]:
         result = []
