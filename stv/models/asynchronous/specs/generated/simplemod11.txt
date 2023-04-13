@@ -16,4 +16,4 @@ INITIAL: [p = False]
 COALITION: [a]
 LOGIC: UCL 
 %FORMULA: {[((q = False), a, (q = False))+]}<<a>>(p = False)
-FORMULA: {[({[((p = False), a, (p = True))+]}<<a>>(p = True), a, {[((q = False), a, (p = True))+]}<<a>>(p = True))+]}<<a>>(p = False)
+FORMULA: {[({[((p = False), a, (p = True))+]}<<a>>(p = True), a, {[((q = False), a, (p = True))+]}<<a>>(p = True))+]}<<b>>(p = False)

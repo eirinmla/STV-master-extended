@@ -358,27 +358,32 @@ class FormulaParser(Parser):
     def __parseFormulaExpression(self):
         self.consume("(")
         formulaExpression = []
-        while True:
-            res = self.readUntil([")", "(", "&", "|", "=", "!", ">"])
-            str = res[0]
-            chr = res[1]
-            if chr == ")":
-                if len(str) > 0:
-                    formulaExpression.append(str)
-                break
-            elif chr == "(":
-                formulaExpression.append(self.__parseFormulaExpression())
-            elif chr == "&" or chr == "|" or chr == "=" or chr == "!" or chr == ">":
-                if len(str) > 0:
-                    formulaExpression.append(str)
-                if chr == "!" and self.peekChar(1) == "=":
-                    formulaExpression.append("!=")
+        if self.peekChar(0) == "{":
+                formulaExpression.append(self.__parseUpgradeFormula())
+        elif self.peekChar(0) == "<":
+                formulaExpression.append(self.__parseCoalitionExpression())
+        else: 
+            while True:
+                res = self.readUntil([")", "(", "&", "|", "=", "!", ">"])
+                str = res[0]
+                chr = res[1]
+                if chr == ")":
+                    if len(str) > 0:
+                        formulaExpression.append(str)
+                    break
+                elif chr == "(":
+                    formulaExpression.append(self.__parseFormulaExpression())
+                elif chr == "&" or chr == "|" or chr == "=" or chr == "!" or chr == ">":
+                    if len(str) > 0:
+                        formulaExpression.append(str)
+                    if chr == "!" and self.peekChar(1) == "=":
+                        formulaExpression.append("!=")
+                        self.stepForward()
+                    else:
+                        formulaExpression.append(chr)
                     self.stepForward()
                 else:
-                    formulaExpression.append(chr)
-                self.stepForward()
-            else:
-                raise Exception("Unimplemented character inside __parseFormulaExpression")
+                    raise Exception("Unimplemented character inside __parseFormulaExpression")
         simpleExpression = self.__convertToSimpleExpression(formulaExpression)
         self.consume(")")
         return simpleExpression

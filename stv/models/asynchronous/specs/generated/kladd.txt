@@ -1,0 +1,79 @@
+        forcing_actions_agent1 = [] # agent with index 0 in actions is the same agent that has agent-id 0
+        forcing_actions_agent2 = [] # agent with index 1 in actions is the same agent that has agent-id 1
+        dict_actions = self._model.get_full_transitions()
+        print("dict_actions: ", dict_actions)
+        state_id = 0
+        while state_id < len(self._states):
+            temp_list = []
+            not_forcing = []
+            for key, value in dict_actions.items():
+                if key[0] == state_id:
+                    temp_list.append(value)
+            if len(temp_list) == 1:
+                continue
+            else:
+                count = 0
+                print(len(temp_list))
+                #while count < len(temp_list):
+                #    print(temp_list[count])
+                #    count += 1
+            print("templist 1", temp_list[0], "hei", temp_list[1])
+            for item in temp_list[0]:
+                for it in temp_list[1]:
+                    if item[0] == it[0]:
+                        not_forcing.append(item[0])
+            
+            for key, value in dict_actions.items():
+                if key[0] == state_id:
+                    for element in not_forcing:
+                        print(element, value)
+                        for el in value:
+                            if element in el:
+                                dict_actions[key].remove(el)
+            state_id += 1
+
+            print("temp_list", temp_list)
+            print(not_forcing)
+        print(dict_actions)
+
+
+
+
+        from_states =  []
+        for key in dict_actions.keys():
+            from_states.append(key[0])
+        for state in set(from_states): # hele denne virker kun dersom det bare er en action til hver from_state, to_state tuppel
+            if from_states.count(state) == 1:
+                for key, value in dict_actions.items():
+                    if state == key[0]:
+                        forcing_actions_agent1.append([key, value])
+                        forcing_actions_agent2.append([key, value])
+            elif from_states.count(state) == 2:
+                action_pairs = []
+                for key, value in dict_actions.items():
+                    if key[0] == state:
+                        action_pairs.append(value)
+                action_agent1 = []
+                action_agent2 = []
+                #print(action_pairs)
+                for action in action_pairs:
+                    count = 0
+                    while count < len(action):
+                        action_agent1.append(action[count][0])
+                        action_agent2.append(action[count][1])
+                        #print(action_agent1, action_agent2)
+                        if len(set(action_agent1)) == 1 and len(set(action_agent2)) == 2:
+                            for key, value in dict_actions.items():
+                                if state == key[0]:
+                                    forcing_actions_agent2.append([key, value])
+                        elif len(set(action_agent1)) == 2 and len(set(action_agent2)) == 1:
+                            for key, value in dict_actions.items():
+                                if state == key[0]:
+                                    forcing_actions_agent1.append([key, value])
+                        count += 1
+                #print("action_agent1:", action_agent1, "\naction_agent2:", action_agent2)
+            else: 
+                pass
+                
+        print("forcing actions agent1: ", forcing_actions_agent1, "\nforcing actions agent2: ", forcing_actions_agent2)
+        return forcing_actions_agent1, forcing_actions_agent2

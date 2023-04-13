@@ -1,6 +1,6 @@
 import itertools
 
-from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier, SimpleExpression
+from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier, SimpleExpression, CoalitionExpression
 from typing import List, Dict, Any, Set, Tuple
 from enum import Enum
 import time
@@ -8,6 +8,7 @@ from stv.models.asynchronous.global_state import GlobalState
 from stv.models.asynchronous.local_model import LocalModel
 from stv.models.asynchronous.local_transition import LocalTransition, SharedTransition
 from stv.models import SimpleModel
+from stv.logics.atl import ATLIrModel
 from stv.comparing_strats import StrategyComparer
 from stv.parsers import FormulaParser, TemporalOperator, UpgradeType
 
@@ -890,7 +891,7 @@ class GlobalModel:
         
     def updating_model_upgrade_formula(self, upgrade_formula, gm=None):
         print("upgrade_formula", upgrade_formula)
-        if upgrade_formula.upgradeList and gm==None:
+        if isinstance(upgrade_formula, UpgradeFormula) and  upgrade_formula.upgradeList and gm==None:
             gm =GlobalModel([it for it in self._local_models],
                 [it for it in self._reduction],
                 [it for it in self._bounded_vars],
@@ -913,14 +914,18 @@ class GlobalModel:
             print("result", upgrade_formula, result)
             return result
         
-        elif upgrade_formula.upgradeList and gm!=None:
+        elif isinstance(upgrade_formula, UpgradeFormula) and upgrade_formula.upgradeList and gm!=None:
             updated_gm = gm.updating_model_upgrade_list(upgrade_formula.upgradeList, gm)
             result = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression, updated_gm)
             print("result", upgrade_formula, result)
             return result
 
         else: 
-            result = self.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
+            print(upgrade_formula)
+            if isinstance(upgrade_formula, CoalitionExpression):
+                result = self.updating_model_coalition_expression(upgrade_formula)
+            else:
+                result = self.updating_model_coalition_expression(upgrade_formula.coalitionExpression)
             return result
 
     def updating_model_upgrade_list(self, upgrade_list, gm):
@@ -1015,11 +1020,11 @@ class GlobalModel:
     def updating_model_coalition_expression(self, coalition_expression, current_model=None):
         print("coalition_expression", coalition_expression)
         if coalition_expression.coalitionAgents:
-            winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression, self))
             coalition = self.agent_name_coalition_to_ids(coalition_expression.coalitionAgents)
-            print("winning_states", winning_states)
             print("coalition", coalition)
-            if current_model == None: 
+            winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression, self))
+            print("winning_states", winning_states)
+            if current_model != ATLIrModel: 
                 current_model = self._model.to_atl_perfect()
             result = current_model.ucl_next(coalition, winning_states)
             print("result from coalition expression", result)
@@ -1029,6 +1034,11 @@ class GlobalModel:
             return result
 
     def updating_model_simple_expression(self, simple_expression, gm):
+        if isinstance(simple_expression, UpgradeFormula):
+            return self.updating_model_upgrade_formula(simple_expression, gm)
+        elif isinstance(simple_expression, CoalitionExpression):
+            return self.updating_model_coalition_expression(simple_expression, gm)
+
         if isinstance(simple_expression, SimpleExpression):
             print("simple_expression", simple_expression)
             states_with_props = self.get_states_with_props(simple_expression)
@@ -1123,12 +1133,13 @@ class GlobalModel:
     def get_remaining_transitions(self, preserved_transitions): 
         all_transitions = self._model.get_full_transitions()
         forcing_act1, forcing_act2 = self.get_forcing_actions()
-
         forcing_actions = []
         for element in forcing_act1:
-            forcing_actions.append(element)
+            if element not in forcing_actions:
+                forcing_actions.append(element)
         for element in forcing_act2:
-            forcing_actions.append(element)
+            if element not in forcing_actions:
+                forcing_actions.append(element)
 
         forcing_actions_dict = {}
         for element in forcing_actions:
@@ -1160,10 +1171,10 @@ class GlobalModel:
         dict_actions = self._model.get_full_transitions()
         forcing_actions_agent1 = []
         forcing_actions_agent2 = []
-        non_forcing_actions = set()
         count = 0
         while count < self._agents_count:
             for state in self._states:
+                non_forcing_actions = set()
                 temp_list = []
                 for key, value in dict_actions.items():
                     if state.id == key[0]:
