@@ -1,6 +1,6 @@
 import itertools
 
-from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier, SimpleExpression, CoalitionExpression
+from stv.parsers.formula_parser import AtlFormula, CtlFormula, UpgradeFormula, PathQuantifier, SimpleExpression, CoalitionExpression, SimpleExpressionOperator
 from typing import List, Dict, Any, Set, Tuple
 from enum import Enum
 import time
@@ -934,7 +934,7 @@ class GlobalModel:
         for upgrade in upgrade_list.upgrades:
             if upgrade.type == UpgradeType.P:
                 new_transitions = self.updating_model_upgrade_positive(upgrade)
-                print(new_transitions)
+                print("New transitions: ", new_transitions)
                 updated_gm = gm._model.updated_model(new_transitions)
             elif upgrade.type == UpgradeType.N:
                 preserved_transitions = self.updating_model_upgrade_negative(upgrade)
@@ -1034,14 +1034,41 @@ class GlobalModel:
             return result
 
     def updating_model_simple_expression(self, simple_expression, gm):
+        
         if isinstance(simple_expression, UpgradeFormula):
             return self.updating_model_upgrade_formula(simple_expression, gm)
         elif isinstance(simple_expression, CoalitionExpression):
-            return self.updating_model_coalition_expression(simple_expression, gm)
+            return self.updating_model_coalition_expression(simple_expression, gm)    
+        
+        if isinstance(simple_expression, SimpleExpression) and simple_expression.operator != SimpleExpressionOperator.EQ:
+            if isinstance(simple_expression.left, UpgradeFormula):
+                left = self.updating_model_upgrade_formula(simple_expression.left, gm)
+            elif isinstance(simple_expression.left, CoalitionExpression):
+                left =  self.updating_model_coalition_expression(simple_expression.left, gm) 
+            elif isinstance(simple_expression.left, SimpleExpression):
+                if simple_expression.left.operator == SimpleExpressionOperator.NOT:
+                    left = self.get_resulting_states(self.updating_model_simple_expression(simple_expression.left.right, gm), simple_expression.left.operator)
+                else:
+                    left = self.get_states_with_props(simple_expression.left)
+            else:
+                left = set()
+            if isinstance(simple_expression.right, UpgradeFormula):
+                right = self.updating_model_upgrade_formula(simple_expression.right, gm)
+            elif isinstance(simple_expression.right, CoalitionExpression):
+                right =  self.updating_model_coalition_expression(simple_expression.right, gm)
+            elif isinstance(simple_expression.right, SimpleExpression):
+                if simple_expression.right.operator == SimpleExpressionOperator.NOT:
+                    right = self.get_resulting_states(self.updating_model_simple_expression(simple_expression.right.right, gm), simple_expression.right.operator)
+                else:
+                    right = self.get_states_with_props(simple_expression.right)
+            return self.get_resulting_states(right, simple_expression.operator, left)
 
         if isinstance(simple_expression, SimpleExpression):
             print("simple_expression", simple_expression)
-            states_with_props = self.get_states_with_props(simple_expression)
+            if simple_expression.operator == SimpleExpressionOperator.NOT:
+                states_with_props = self.updating_model_simple_expression(simple_expression)
+            else:
+                states_with_props = self.get_states_with_props(simple_expression)
             print("states_with_props", states_with_props)
             return states_with_props
         else: 
@@ -1057,6 +1084,19 @@ class GlobalModel:
 
         return result
 
+    def get_resulting_states(self, right, operator, left=set()):
+        print(left, operator, right)
+        result = set()
+        if operator == SimpleExpressionOperator.NOT:
+            all_states = set(state.id for state in self._states)
+            result = all_states - right
+        elif operator == SimpleExpressionOperator.AND:
+            result = set(left).intersection(set(right)) 
+        elif operator == SimpleExpressionOperator.OR:
+            result = set(left).union(set(right))
+        print("get_resulting_states", left, operator, right, " = ", result)
+        return result
+        
     def get_positive_action_pairs(self, from_states, to_states, agent):
         """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers and from and to states for the action pairs"""    
         global count
