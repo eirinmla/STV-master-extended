@@ -812,7 +812,7 @@ class GlobalModel:
         for agent_id in range(len(self._local_models)):
             if self._local_models[agent_id].agent_name == agent_name:
                 return agent_id
-        return -1
+        raise Exception("Cannot be an empty coalition or an agent who is not in the model.")
 
     def agent_name_coalition_to_ids(self, agent_names: List[str]) -> List[int]:
         agent_ids: List[int] = []
