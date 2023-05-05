@@ -282,7 +282,7 @@ class FormulaParser(Parser):
         return agent
 
 
-    def __parseFormulaUpgradeType(self): #  notes if the update is positive or negative.                                     
+    def __parseFormulaUpgradeType(self):                             
         c = self.read(1)
         if c == "+":
             return UpgradeType.P
