@@ -883,10 +883,8 @@ class GlobalModel:
             counter += 1
         return agents_id_dict
 
-    def updating_model(self): # alltid ytterst
+    def updating_model(self): # entry-point
         result = self.updating_model_upgrade_formula(self._formula_obj)
-        print("ytterste laget", result)
-        #updated_model = self._model.updated_model(new_transitions)
         return result
         
     def updating_model_upgrade_formula(self, upgrade_formula, gm=None):
@@ -941,7 +939,7 @@ class GlobalModel:
                 remaining_transitions, removed_transitions = self.transitions_to_remove(preserved_transitions) # including preserved forcing actions and other non-forcing actions
                 print("All preserved transitions:", remaining_transitions)
                 print("Removed transitions", removed_transitions)
-                updated_gm = gm._model.updated_model_negative(removed_transitions) # må endre transitions
+                updated_gm = gm._model.updated_model_negative(removed_transitions)
                 self.test_negative_clash(remaining_transitions)
         #print("disse transitions blir lagt til av gangen", new_transitions)
         return updated_gm
@@ -1069,7 +1067,6 @@ class GlobalModel:
                 states_with_props = self.updating_model_simple_expression(simple_expression)
             else:
                 states_with_props = self.get_states_with_props(simple_expression)
-            print("states_with_props", states_with_props)
             return states_with_props
         else: 
             return self.updating_model_upgrade_formula(simple_expression, gm)
@@ -1085,7 +1082,6 @@ class GlobalModel:
         return result
 
     def get_resulting_states(self, right, operator, left=set()):
-        print(left, operator, right)
         result = set()
         if operator == SimpleExpressionOperator.NOT:
             all_states = set(state.id for state in self._states)
@@ -1243,17 +1239,12 @@ class GlobalModel:
 
     def verify_approximation_ucl(self): # verifying formulas in models
 
-        #init_model = self._model.to_atl_perfect()
-        #forcing_actions_agent1, forcing_actions_agent2 = self.get_forcing_actions()
         start = time.process_time()
-        #if self._formula_obj.upgradeList:
         result = self.updating_model()
         end = time.process_time()    
-        #result = updated_model.ucl_next(coalition, winning_states)
-        
         print(result)
 
-        return 0 in result, end - start, result, #updated_model.strategy                 
+        return 0 in result, end - start, result
     
     def verify_domino(self):
         agent_id = self.get_agent()
