@@ -938,7 +938,7 @@ class GlobalModel:
                 updated_gm = gm._model.updated_model(new_transitions)
             elif upgrade.type == UpgradeType.N:
                 preserved_transitions = self.updating_model_upgrade_negative(upgrade)
-                remaining_transitions, removed_transitions = self.get_remaining_transitions(preserved_transitions) # including preserved forcing actions and other non-forcing actions
+                remaining_transitions, removed_transitions = self.transitions_to_remove(preserved_transitions) # including preserved forcing actions and other non-forcing actions
                 print("All preserved transitions:", remaining_transitions)
                 print("Removed transitions", removed_transitions)
                 updated_gm = gm._model.updated_model_negative(removed_transitions) # må endre transitions
@@ -1013,7 +1013,7 @@ class GlobalModel:
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
         print("fromstates and tostates in update", from_state_ids, to_state_ids)
-        action_pairs = self.get_positive_action_pairs(from_state_ids, to_state_ids, update.agent)
+        action_pairs = self.get_positive_transitions(from_state_ids, to_state_ids, update.agent)
         new_transitions = action_pairs
         return from_state_ids, new_transitions
 
@@ -1097,27 +1097,27 @@ class GlobalModel:
         print("get_resulting_states", left, operator, right, " = ", result)
         return result
         
-    def get_positive_action_pairs(self, from_states, to_states, agent):
-        """returns pair of actions for all actions counterpart has in the state where the agent is granted dict. powers and from and to states for the action pairs"""    
+    def get_positive_transitions(self, from_states, to_states, agent):
+        """returns new transitions for all actions counterpart has in the 
+        state where the agent is granted dictatorial powers"""    
         global count
         agents_id_dict = self.agents_to_dict()
-        action_pairs = []
+        transitions = []
         if agents_id_dict.get(str(agent)) == 0:
             for element in from_states:
                 for elem in to_states:
                     for el in self._model.get_possible_strategies_for_coalition(element, [1]): 
-                        action_pairs.append([element, elem, [f"dict_powers{count}", el[0]]])
+                        transitions.append([element, elem, [f"dict_powers{count}", el[0]]])
                     count += 1
         elif agents_id_dict.get(str(agent)) == 1:
             for element in from_states:
                 for elem in to_states:
                     for el in self._model.get_possible_strategies_for_coalition(element, [0]): 
-                        action_pairs.append([element, elem, [el[0],f"dict_powers{count}"]])
+                        transitions.append([element, elem, [el[0],f"dict_powers{count}"]])
                     count += 1
         else:
             raise Exception("Only works when two agents")
-        # print("originale action pairs", action_pairs)
-        return action_pairs
+        return transitions
 
 
     def test_clashfreeness(self, granted_powers_dict):
