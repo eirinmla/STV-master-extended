@@ -305,16 +305,17 @@ class SimpleModel:
         """
         atl_model = ATLIrModel(self._no_agents)
         atl_model = self._copy_model(atl_model, self._actions, epistemic=False)
+        print(self.get_full_transitions())
         ATLIrModel.print_model(atl_model) # only a print
         return atl_model
 
     def updated_model(self, new_transitions) -> ATLIrModel:
         """
-        Updates positively the Alternating-Time Temporal Logic model with perfect information with dictatorial transitions
-        transitions as list will be in the form [[from state, to state, actions(list)],[...]]
+        Positive updates Simple Model and generate the Alternating-Time Temporal Logic model 
+        with perfect information with dictatorial transitions as list will be in the form 
+        [[from state, to state, actions(list)],[...]]
         :return: ATLIr model
         """
-        #updated_model = ATLIrModel(self._no_agents)
         for transition in new_transitions:
             self.add_transition(transition[0], transition[1], transition[2])
         updated_model = ATLIrModel(self._no_agents)
@@ -325,8 +326,9 @@ class SimpleModel:
 
     def updated_model_negative(self, removed_transitions) -> ATLIrModel:
         """
-        Negative Updates the Alternating-Time Temporal Logic model with perfect information removing transitions that is not stated to be preserved.
-        Removed transitions as list will be in the form [[(from state, to state), actions(list)],[...]]
+        Negative Updates the Alternating-Time Temporal Logic model with perfect information 
+        removing transitions that is not stated to be preserved. Removed transitions as list
+        will be in the form [[(from state, to state), actions(list)],[...]]
         :return: ATLIr model
         """
         for transition in removed_transitions:
