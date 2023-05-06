@@ -154,18 +154,14 @@ class SimpleModel:
         :return: None
         """ 
         for agent_id in range(self._no_agents):
-            print(self._actions[agent_id])
             if actions[agent_id] in self._actions[agent_id]:
                 count = 0
                 for element in self.get_full_transitions().values():
                     for pair in element: 
-                        print(actions[agent_id], pair)
                         if actions[agent_id] in pair:
                             count += 1
-                print(count)
                 if count == 1:
                     self._actions[agent_id].remove(actions[agent_id])
-            print(self._actions[agent_id])
 
     @deprecated
     def is_unique_transition(self, transition: Transition, state_id: int) -> bool:
@@ -315,7 +311,6 @@ class SimpleModel:
         """
         atl_model = ATLIrModel(self._no_agents)
         atl_model = self._copy_model(atl_model, self._actions, epistemic=False)
-        print(self.get_full_transitions())
         ATLIrModel.print_model(atl_model) # only a print
         return atl_model
 
