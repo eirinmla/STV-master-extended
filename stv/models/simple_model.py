@@ -145,7 +145,7 @@ class SimpleModel:
                     self._graph[from_state_id].remove(transition)
             self._pre_image[to_state_id].remove(from_state_id)
             self._no_transitions -= 1
-            self._remove_actions(actions)
+            # self._remove_actions(actions) kommentert ut fordi den ikke virker som den skal, gjør mer skade enn nytte
 
     def _remove_actions(self, actions: List[str]):
         """
@@ -154,8 +154,18 @@ class SimpleModel:
         :return: None
         """ 
         for agent_id in range(self._no_agents):
+            print(self._actions[agent_id])
             if actions[agent_id] in self._actions[agent_id]:
-                self._actions[agent_id].remove(actions[agent_id])
+                count = 0
+                for element in self.get_full_transitions().values():
+                    for pair in element: 
+                        print(actions[agent_id], pair)
+                        if actions[agent_id] in pair:
+                            count += 1
+                print(count)
+                if count == 1:
+                    self._actions[agent_id].remove(actions[agent_id])
+            print(self._actions[agent_id])
 
     @deprecated
     def is_unique_transition(self, transition: Transition, state_id: int) -> bool:
