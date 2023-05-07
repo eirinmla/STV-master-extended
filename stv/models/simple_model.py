@@ -138,14 +138,12 @@ class SimpleModel:
         if "*" in actions:
             pass
         else: 
-            # self.resize_to_state(max(from_state_id, to_state_id))
-        # if self.is_unique_transition(Transition(to_state_id, actions), from_state_id):
             for transition in self._graph[from_state_id]:
                 if transition.actions == actions and transition.next_state == to_state_id:
                     self._graph[from_state_id].remove(transition)
             self._pre_image[to_state_id].remove(from_state_id)
             self._no_transitions -= 1
-            # self._remove_actions(actions) kommentert ut fordi den ikke virker som den skal, gjør mer skade enn nytte
+            # self._remove_actions(actions) does not seem to be needed. 
 
     def _remove_actions(self, actions: List[str]):
         """
@@ -293,6 +291,11 @@ class SimpleModel:
         return list(possible_actions)
     
     def get_full_transitions(self):
+        """
+        Method for retrieving information for all transitions, from state, to state and 
+        actions, all information is added to a dictionary where the key is from state and to state
+        are a comma seperated tuple, and the value is the actions.
+        """
         dict_actions = {}
         n = 0
         while n < len(self.states):
