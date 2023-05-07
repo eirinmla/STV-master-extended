@@ -1,0 +1,25 @@
+SEMANTICS: synchronous
+
+Agent a:
+init: holding
+nact: holding -> holding
+nact: deposit -> deposit
+act: holding -[Bb==True and Aa==True]> deposit [dA=True, Aa=False]
+fin: deposit -[dA == True and dB == True]> goal [Ba=True, Ab=True, dA=False, dB=False]
+cancel: deposit -[dA==True and Bb==True]> holding [Aa=True, dA=False, Bb=True, dB=False]
+nact: goal -> goal
+
+Agent b:
+init: holding
+nact: holding -> holding
+nact: deposit -> deposit 
+act: holding -[Bb==True and Aa==True]> deposit [Bb=False, dB=True]
+fin: deposit -[dA == True and dA == True]> goal [Ba=True, Ab=True, dA=False, dB=False]
+cancel: deposit -[dB==True and Aa==True]> holding [Aa=True, dA=False, Bb=True, dB=False]
+nact: goal -> goal
+
+PERSISTENT: [Aa, Bb, Ba, Ab, dA, dB]
+INITIAL: [Aa=True, Bb=True, Ba=False, Ab=False, dA=False, dB=False]
+COALITION: [a]
+LOGIC: UCL
+FORMULA: <<a>>(dA = True)

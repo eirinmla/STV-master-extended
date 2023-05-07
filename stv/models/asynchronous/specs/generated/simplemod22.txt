@@ -1,0 +1,32 @@
+SEMANTICS: synchronous
+
+Agent a:
+init: state1
+relax: state1 -[p == False]> state1 
+mad: state2 -[q == False]> state1 [p=False]
+clean: state1 -[p == False]> state2 [p=True]
+watchtv: state2 -[p == True and q == True]> state2
+
+Agent b: 
+init: state1
+relax: state1 -[q == False]> state1 
+mad: state3 -[p == False]> state1 [q=False]
+clean: state1 -[q == False]> state3 [q=True]
+watchtv: state3 -[p == True and q == True]> state3
+
+
+PERSISTENT: [p, q]
+INITIAL: [p = False, q = False]
+COALITION: [a]
+LOGIC: UCL
+%FORMULA: <<a>>(p = True)
+%FORMULA: <<b>>(p = True)
+%FORMULA: <<a,b>>(p = True)
+%FORMULA: <<>>(p = True)
+%FORMULA: <<c>>(p = True)
+
+%FORMULA: <<b>>(s = True)
+%FORMULA: <<b>><<a>>(p = True)
+FORMULA: {[(<<a>>(p = False), b, <<a>>(p = True))+]}<<b>>(p = True)
+%FORMULA: <<a>>((p = True) & (<<b>>(q = True)))
+%FORMULA: <<a>>((<<b>>(p = True)) & (p = False))

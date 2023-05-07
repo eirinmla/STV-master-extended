@@ -15,4 +15,5 @@ PERSISTENT: [p]
 INITIAL: [p = False]
 COALITION: [b]
 LOGIC: UCL 
-FORMULA: <<b>>(p = False)
+FORMULA: <<a>>(p = True)
+%FORMULA: <<b>>((<<a>>(p = False)) | ({[((p = False), a, (p = True))+]}<<a>>(p = True)))
