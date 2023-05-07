@@ -892,7 +892,7 @@ class GlobalModel:
         """Sends the parts of the formula to their respective methods, divided in upgrade_list 
             and coalition_expression. Generates new global model if none is given to hold with
             the recursion. """
-        print("upgrade_formula", upgrade_formula)
+        #print("upgrade_formula", upgrade_formula)
         if isinstance(upgrade_formula, UpgradeFormula) and  upgrade_formula.upgradeList and gm==None:
             gm =GlobalModel([it for it in self._local_models],
                 [it for it in self._reduction],
@@ -923,7 +923,6 @@ class GlobalModel:
             return result
 
         else: 
-            print(upgrade_formula)
             if isinstance(upgrade_formula, CoalitionExpression):
                 result = self.updating_model_coalition_expression(upgrade_formula)
             else:
@@ -934,7 +933,7 @@ class GlobalModel:
         """Checks which upgradeType the upgrade has, calls the correct methods. 
             return value : a updated model with more or less transitions depending 
             on positive or negative upgrade. """
-        print("upgrade_list", upgrade_list)
+        #print("upgrade_list", upgrade_list)
         new_transitions = []
         for upgrade in upgrade_list.upgrades:
             if upgrade.type == UpgradeType.P:
@@ -1036,7 +1035,7 @@ class GlobalModel:
         #print("update", update)
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
-        print("fromstates and tostates in update", from_state_ids, to_state_ids)
+        print("from states and to states in update", from_state_ids, to_state_ids)
         action_pairs = self.get_positive_transitions(from_state_ids, to_state_ids, update.agent)
         new_transitions = action_pairs
         return from_state_ids, new_transitions
@@ -1044,16 +1043,16 @@ class GlobalModel:
     def updating_model_coalition_expression(self, coalition_expression, current_model=None):
         """Generates a ATLIrModel, verifies the part of the formula given and returns states 
             where the part of the model holds. """
-        print("coalition_expression", coalition_expression)
+        #print("coalition_expression", coalition_expression)
         if coalition_expression.coalitionAgents:
             coalition = self.agent_name_coalition_to_ids(coalition_expression.coalitionAgents)
             print("coalition", coalition)
             winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression, self))
-            print("winning_states", winning_states)
+            #print("winning_states", winning_states)
             if current_model != ATLIrModel: 
                 current_model = self._model.to_atl_perfect()
             result = current_model.ucl_next(coalition, winning_states)
-            print("result from coalition expression", result)
+            print("temporary result from coalition expression", result)
             return result
         else:
             result = self.updating_model_simple_expression(coalition_expression.simpleExpression, self)
@@ -1062,7 +1061,7 @@ class GlobalModel:
     def updating_model_simple_expression(self, simple_expression, gm):
         """Determine what class the given part of the formula is an instance of and 
             returns a set of state ids where the part of the formula holds. """
-        print("simple_expression", simple_expression)
+        #print("simple_expression", simple_expression)
         if isinstance(simple_expression, UpgradeFormula):
             return self.updating_model_upgrade_formula(simple_expression, gm)
         elif isinstance(simple_expression, CoalitionExpression):
@@ -1092,7 +1091,6 @@ class GlobalModel:
             return self.get_resulting_states(right, simple_expression.operator, left)
 
         if isinstance(simple_expression, SimpleExpression):
-            print("simple_expression", simple_expression)
             if simple_expression.operator == SimpleExpressionOperator.NOT:
                 states_with_props = self.updating_model_simple_expression(simple_expression)
             else:
@@ -1110,7 +1108,7 @@ class GlobalModel:
                state.set_prop(expr.left, False)
             if expr.evaluate(state.props):
                 result.append(state.id)
-
+        print("Props:", expr, "States with props:", result)
         return result
 
     def get_resulting_states(self, right, operator, left=set()):
@@ -1295,7 +1293,6 @@ class GlobalModel:
         start = time.process_time()
         result = self.updating_model()
         end = time.process_time()    
-        print(result)
 
         return 0 in result, end - start, result
     
