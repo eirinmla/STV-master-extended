@@ -977,13 +977,12 @@ class GlobalModel:
             joint forcing actions should be preserved.
             return value : list of all preserved transitions in upgrade. """
         preserved_transitions_list = []
-        maybe_list = {0: [], 1: []}
+        maybe_list = {0:[], 1:[]}
         for update in upgrade.updates:
             preserved_transitions, maybe_preserved_transitions = self.updating_model_update_negative(update)
-            if 0 in maybe_preserved_transitions.keys():
-                maybe_list[0].append(maybe_preserved_transitions[0])
-            if 1 in maybe_preserved_transitions.keys():
-                maybe_list[1].append(maybe_preserved_transitions[1])
+            for key, value in maybe_preserved_transitions.items():
+                for v in value: 
+                    maybe_list[key].append(v)
             preserved_transitions_list += preserved_transitions
         for element in maybe_list[0]:
             for el in maybe_list[1]:
@@ -1013,7 +1012,10 @@ class GlobalModel:
                         if (state, s) == element[0] and element not in forcing_actions_agent2:
                             preserved_transitions.append(element)
                         elif (state, s) == element[0] and element in forcing_actions_agent2:
-                            maybe_preserved_transitions[0] = element
+                            if 0 not in maybe_preserved_transitions.keys():
+                                maybe_preserved_transitions[0] = [element]
+                            else:
+                                maybe_preserved_transitions[0].append(element)
         elif agent == 1:
             for element in forcing_actions_agent2:
                 for state in from_state_ids:
@@ -1021,8 +1023,10 @@ class GlobalModel:
                         if (state, s) == element[0] and element not in forcing_actions_agent1:
                             preserved_transitions.append(element)
                         elif (state, s) == element[0] and element in forcing_actions_agent1:
-                            maybe_preserved_transitions[1] = element
-
+                            if 1 not in  maybe_preserved_transitions.keys():
+                                maybe_preserved_transitions[1] = [element]
+                            else:
+                                maybe_preserved_transitions[1].append(element)
         return preserved_transitions, maybe_preserved_transitions
 
 
@@ -1247,41 +1251,82 @@ class GlobalModel:
 
         return remaining_transitions, removed_transitions
 
+    def get_state_actions(self):
+        """Retrieves data of which actions the agents have in the different states, 
+            returns a dictionary with state ID as key and action pairs in list as value
+            returns a counter for minimum amount of action_pairs in a CGM with the 
+            current states and actions."""
+        state_action_dict = {}
+        action_pairs_counter = 0
+        for state in self._states:
+            actions_agent1 = [i[0] for i in self._model.get_possible_strategies_for_coalition(state.id, [0])]
+            actions_agent2 = [i[0] for i in self._model.get_possible_strategies_for_coalition(state.id, [1])]
+            state_action_dict[state.id] = []
+            for elm in actions_agent1:
+                for el in actions_agent2:
+                    state_action_dict[state.id].append((elm, el))
+                    action_pairs_counter += 1
+            
+        return state_action_dict, action_pairs_counter
+
+    def get_equal_states(self):
+        """Checks if states have the same props,
+            return value: list of sets of states,
+            the index is the same as state ID 
+            and in each set is all state IDs
+            for states with same props. """
+        states_with_same_props = []
+        for state in self._states:
+            temp = set()
+            for s in self._states:
+                if state.props == s.props:
+                    temp.add(s.id)
+            states_with_same_props.append(temp)
+        return states_with_same_props
 
     def get_forcing_actions(self):
         """Determines forcing actions. 
             Return values : list of transitions with forcing actions 
                             for each agent. """
         dict_actions = self._model.get_full_transitions()
+        same_props = self.get_equal_states()
         forcing_actions_agent1 = []
         forcing_actions_agent2 = []
         count = 0
         while count < self._agents_count:
+            from_act_to_all = {}
             for state in self._states:
-                non_forcing_actions = set()
-                temp_list = []
-                for key, value in dict_actions.items():
-                    if state.id == key[0]:
-                        temp_set = set()
-                        for val in value:
-                            temp_set.add(val[count])
-                        temp_list.append(temp_set)
-                if len(temp_list) > 1:
-                    non_forcing_actions = set.intersection(*temp_list)
-                for key, value in dict_actions.items():
-                    if state.id == key[0]:
-                        for val in value:
-                            if non_forcing_actions == set():
-                                if count == 0:
-                                    forcing_actions_agent1.append([key, val])
-                                elif count == 1:
-                                    forcing_actions_agent2.append([key, val])
-                            else: 
-                                if val[count] not in non_forcing_actions:
-                                    if count == 0:
-                                        forcing_actions_agent1.append([key, val])
-                                    elif count == 1:
-                                        forcing_actions_agent2.append([key, val])
+                actions = self._model.get_possible_strategies_for_coalition(state.id, [count])
+                for action in actions:
+                    all_to_states = []
+                    for transition in self._model._graph[state.id]:
+                        if transition.actions[count] == action[0]:
+                            all_to_states.append(transition.next_state)
+                    if state.id not in from_act_to_all.keys():
+                        from_act_to_all[state.id] = [{action[0]: all_to_states}]
+                    else: from_act_to_all[state.id].append({action[0]: all_to_states})
+            for from_state, value in from_act_to_all.items():
+                for d in value:
+                    for to_states in d.values():
+                        if len(to_states) == 1:
+                            if count == 0:
+                                for i in dict_actions[(from_state,to_states[0])]:
+                                    forcing_actions_agent1.append([(from_state, to_states[0]), i])
+                            elif count == 1: 
+                                for i in dict_actions[(from_state,to_states[0])]:
+                                    forcing_actions_agent2.append([(from_state, to_states[0]), i])
+                        else: 
+                            for props in same_props:
+                                if len(props.intersection(set(to_states))) == len(to_states):
+                                    for to_state in to_states:
+                                        if count == 0:
+                                            for i in dict_actions[(from_state,to_state)]:
+                                                if [(from_state, to_state), i] not in forcing_actions_agent1:
+                                                    forcing_actions_agent1.append([(from_state, to_state), i]) 
+                                        elif count == 1:
+                                            for i in dict_actions[(from_state,to_state)]:
+                                                if [(from_state, to_state), i] not in forcing_actions_agent2:
+                                                    forcing_actions_agent2.append([(from_state, to_state), i]) 
             count += 1
         return forcing_actions_agent1, forcing_actions_agent2
 
