@@ -1073,7 +1073,7 @@ class GlobalModel:
         
         if isinstance(simple_expression, SimpleExpression) and simple_expression.operator != SimpleExpressionOperator.EQ:
             if isinstance(simple_expression.left, UpgradeFormula):
-                left = self.updating_model_upgrade_formula(simple_expression.left, gm)
+                left = self.updating_model_upgrade_formula(simple_expression.left, gm=None)
             elif isinstance(simple_expression.left, CoalitionExpression):
                 left =  self.updating_model_coalition_expression(simple_expression.left, gm) 
             elif isinstance(simple_expression.left, SimpleExpression):
@@ -1084,7 +1084,7 @@ class GlobalModel:
             else:
                 left = set()
             if isinstance(simple_expression.right, UpgradeFormula):
-                right = self.updating_model_upgrade_formula(simple_expression.right, gm)
+                right = self.updating_model_upgrade_formula(simple_expression.right, gm=None)
             elif isinstance(simple_expression.right, CoalitionExpression):
                 right =  self.updating_model_coalition_expression(simple_expression.right, gm)
             elif isinstance(simple_expression.right, SimpleExpression):
