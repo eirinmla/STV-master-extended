@@ -351,6 +351,8 @@ class ATLIrModel:
         return result_states
 
     def ucl_next(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]: 
+        """Method for verifying coalition operator <<C>>
+            return value : set of states where the formula holds """
         is_winning_state = self.marked_winning_states(current_states)
         result_states = set()
         pre_image = self.prepare_pre_image(current_states)
@@ -409,7 +411,7 @@ class ATLIrModel:
         return result_states
 
     def prepare_pre_image(self, states: Set[int]) -> Set[int]:
-        """predecessor for transitions to states which is winning states"""
+        """predecessor for transitions to winning states (states where formula holds)"""
         pre_image = set()
         for state_id in states:
             pre_image = pre_image.union(self.pre_states[state_id])
