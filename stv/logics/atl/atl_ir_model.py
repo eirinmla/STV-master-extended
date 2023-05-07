@@ -350,25 +350,14 @@ class ATLIrModel:
         print(self.strategy)
         return result_states
 
-
-    def ucl_next(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]:
+    def ucl_next(self, agent_ids: List[int], current_states: Set[int]) -> Set[int]: 
         is_winning_state = self.marked_winning_states(current_states)
         result_states = set()
         pre_image = self.prepare_pre_image(current_states)
         actions = self.get_agents_actions(agent_ids)
         self.strategy = [None for _ in range(self.number_of_states)]
         for state_id in pre_image:
-            if is_winning_state[state_id]:        #     Kommentert ut på grunn av at det kun er et state man skal videre og fordi det ikke er mulig å ikke gjøre et valg
-                pass
-                #print(is_winning_state[state_id])
-                #result_states.add(state_id)
-                #continue
-
             for action in itertools.product(*actions):
-                #print(action)
-                if action == "*":
-                    continue
-
                 if self.is_reachable_by_agents(agent_ids, state_id, list(action), is_winning_state):
                     self.strategy[state_id] = list(action)
                     result_states.add(state_id)
