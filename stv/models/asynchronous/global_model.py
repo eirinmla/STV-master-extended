@@ -884,10 +884,14 @@ class GlobalModel:
         return agents_id_dict
 
     def updating_model(self): # entry-point
+        """return value : set of states where the formula holds"""
         result = self.updating_model_upgrade_formula(self._formula_obj)
         return result
         
     def updating_model_upgrade_formula(self, upgrade_formula, gm=None):
+        """Sends the parts of the formula to their respective methods, divided in upgrade_list 
+            and coalition_expression. Generates new global model if none is given to hold with
+            the recursion. """
         print("upgrade_formula", upgrade_formula)
         if isinstance(upgrade_formula, UpgradeFormula) and  upgrade_formula.upgradeList and gm==None:
             gm =GlobalModel([it for it in self._local_models],
@@ -927,6 +931,9 @@ class GlobalModel:
             return result
 
     def updating_model_upgrade_list(self, upgrade_list, gm):
+        """Checks which upgradeType the upgrade has, calls the correct methods. 
+            return value : a updated model with more or less transitions depending 
+            on positive or negative upgrade. """
         print("upgrade_list", upgrade_list)
         new_transitions = []
         for upgrade in upgrade_list.upgrades:
@@ -945,6 +952,9 @@ class GlobalModel:
         return updated_gm
     
     def updating_model_upgrade_positive(self, upgrade):
+        """ Merges the new transitions from all updates within the upgrade,
+            tests executability condition before returning values. 
+            return value : list of all new transitions in upgrade. """
         #print("upgrade", upgrade)
         new_transitions_list = []
         granted_powers_dict = {}
@@ -963,6 +973,10 @@ class GlobalModel:
         return new_transitions_list
 
     def updating_model_upgrade_negative(self, upgrade):
+        """ Merges the preserved transitions from updates in the same upgrade,
+            determines whether or not the transitions with 
+            joint forcing actions should be preserved.
+            return value : list of all preserved transitions in upgrade. """
         preserved_transitions_list = []
         maybe_list = {0: [], 1: []}
         for update in upgrade.updates:
@@ -980,6 +994,13 @@ class GlobalModel:
 
 
     def updating_model_update_negative(self, update):
+        """ Determine which transitions with forcing actions should be preserved 
+            by the update, and which transitions that might be preserved depending
+            on the other updates in the same upgrade 
+            return value : list of transitions that will be preserved by the udate
+            and a list of transtions that should be preserved by the update but 
+            might not be because the other agent also has a forcing action in the
+            same transition """
         preserved_transitions = []
         maybe_preserved_transitions = {}
         forcing_actions_agent1, forcing_actions_agent2 = self.get_forcing_actions()
@@ -1007,6 +1028,11 @@ class GlobalModel:
 
 
     def updating_model_update_positive(self, update):
+        """Retrieve state IDs for states that holds formula in from_state and to_state,
+            calls method that generates new transitions with dictatorial powers for agent
+            in update, 
+            return value : list of fromstate IDs for checking executablitiy condition and
+                           list of new transitions from current update. """
         #print("update", update)
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
@@ -1016,6 +1042,8 @@ class GlobalModel:
         return from_state_ids, new_transitions
 
     def updating_model_coalition_expression(self, coalition_expression, current_model=None):
+        """Generates a ATLIrModel, verifies the part of the formula given and returns states 
+            where the part of the model holds. """
         print("coalition_expression", coalition_expression)
         if coalition_expression.coalitionAgents:
             coalition = self.agent_name_coalition_to_ids(coalition_expression.coalitionAgents)
@@ -1032,7 +1060,9 @@ class GlobalModel:
             return result
 
     def updating_model_simple_expression(self, simple_expression, gm):
-        
+        """Determine what class the given part of the formula is an instance of and 
+            returns a set of state ids where the part of the formula holds. """
+        print("simple_expression", simple_expression)
         if isinstance(simple_expression, UpgradeFormula):
             return self.updating_model_upgrade_formula(simple_expression, gm)
         elif isinstance(simple_expression, CoalitionExpression):
@@ -1072,6 +1102,8 @@ class GlobalModel:
             return self.updating_model_upgrade_formula(simple_expression, gm)
 
     def get_states_with_props(self, expr) -> List[int]:
+        """Retrieves state IDs to states where the propositions given value holds.
+            Return value : list of state IDs."""
         result = []
         for state in self._states:
             if expr.left not in state.props and expr.right == "False": # if prop not stated in state and value is false, append state.id because props that is not stated is allways false in the state.
@@ -1082,6 +1114,9 @@ class GlobalModel:
         return result
 
     def get_resulting_states(self, right, operator, left=set()):
+        """Processes sets of state IDs with SimpleExpressionOperator
+            between them and returns a set of states that holds with
+            the operator. """
         result = set()
         if operator == SimpleExpressionOperator.NOT:
             all_states = set(state.id for state in self._states)
@@ -1117,6 +1152,9 @@ class GlobalModel:
 
 
     def test_clashfreeness(self, granted_powers_dict):
+        """ Tests positive executability condition, no two agents
+            can be granted dictatorial powers from the same state.
+            Raises exception if it does not hold."""
         values = set()
         value_count = 0
         if len(granted_powers_dict.keys()) > 1: 
@@ -1128,6 +1166,10 @@ class GlobalModel:
             raise Exception("Two or more updates are clashing.")
 
     def test_negative_clash(self, remaining_transitions):
+        """ Tests negative executability condition, all states needs at least one out-going transition. 
+            There has to be enough transitions to cover the cartisian product of the actions 
+            in the specific state. Raises exception if it does not hold. """
+        state_action_dict, action_pairs_counter = self.get_state_actions()
         from_states_list = []
         for element in remaining_transitions:
             from_states_list.append(element[0][0])
@@ -1166,7 +1208,12 @@ class GlobalModel:
             raise Exception("There is not enough arrows preserved to be a valid concurrent game model.")
              
             
-    def get_remaining_transitions(self, preserved_transitions): 
+    def transitions_to_remove(self, preserved_transitions): 
+        """Determine which transitions to remove based on which are forcing
+            and which are preserved. 
+            Return value : list of remaining transitions with both forcing and 
+            non-forcing actions, list of transitions that will not be preserved 
+            in the upgrade. """
         all_transitions = self._model.get_full_transitions()
         forcing_act1, forcing_act2 = self.get_forcing_actions()
         forcing_actions = []
@@ -1204,6 +1251,9 @@ class GlobalModel:
 
 
     def get_forcing_actions(self):
+        """Determines forcing actions. 
+            Return values : list of transitions with forcing actions 
+                            for each agent. """
         dict_actions = self._model.get_full_transitions()
         forcing_actions_agent1 = []
         forcing_actions_agent2 = []
@@ -1237,8 +1287,11 @@ class GlobalModel:
             count += 1
         return forcing_actions_agent1, forcing_actions_agent2
 
-    def verify_approximation_ucl(self): # verifying formulas in models
-
+    def verify_approximation_ucl(self): 
+        """Method called from main.py. Estimates time
+        for verification and returns boolean answer to the
+        model checking problem, time for verification 
+        and the set of states where the formula is true. """
         start = time.process_time()
         result = self.updating_model()
         end = time.process_time()    
