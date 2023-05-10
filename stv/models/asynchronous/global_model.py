@@ -1286,8 +1286,7 @@ class GlobalModel:
 
     def get_forcing_actions(self):
         """Determines forcing actions. 
-            Return values : list of transitions with forcing actions 
-                            for each agent. """
+           Return values : list of transitions with forcing actions for each agent. """
         dict_actions = self._model.get_full_transitions()
         same_props = self.get_equal_states()
         forcing_actions_agent1 = []
