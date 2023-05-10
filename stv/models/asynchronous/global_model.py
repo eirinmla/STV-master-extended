@@ -1308,13 +1308,15 @@ class GlobalModel:
             for from_state, value in from_act_to_all.items():
                 for d in value:
                     for to_states in d.values():
-                        if len(to_states) == 1:
+                        if len(set(to_states)) == 1:
                             if count == 0:
                                 for i in dict_actions[(from_state,to_states[0])]:
-                                    forcing_actions_agent1.append([(from_state, to_states[0]), i])
+                                    if i[count] in d.keys():
+                                        forcing_actions_agent1.append([(from_state, to_states[0]), i])
                             elif count == 1: 
                                 for i in dict_actions[(from_state,to_states[0])]:
-                                    forcing_actions_agent2.append([(from_state, to_states[0]), i])
+                                    if i[count] in d.keys():
+                                        forcing_actions_agent2.append([(from_state, to_states[0]), i])
                         else: 
                             for props in same_props:
                                 if len(props.intersection(set(to_states))) == len(to_states):
