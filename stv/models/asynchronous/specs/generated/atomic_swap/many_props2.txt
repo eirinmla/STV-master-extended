@@ -1,27 +1,25 @@
 SEMANTICS: synchronous
 
 Agent a:
-init: holding
-nact: holding -> holding
-nact: deposit -> deposit
-act: holding -[Bb==True and Aa==True]> deposit [dA=True, Aa=False]
-late_act: holding -[dB==True and Aa==True]> deposit [Aa=False, dA=True]
-fin: deposit -[dA == True and dB == True]> goal [Ba=True, Ab=True, dA=False, dB=False]
-shared cancel: deposit -> holding [Aa=True, dA=False, Bb=True, dB=False]
-nact: goal -> goal
+init: state1
+nact: state1 -> state1 
+nact: state2 -> state2
+act: state1 -> state2 [dA=True, Aa=False]
+fin: state2 -[dA == True and dB == True]> state4 [Ba=True, Ab=True, dA=False, dB=False]
+cancel: state2 -[dA == True and Bb == True]> state1 [Aa=True, dA=False]
+nact: state4 -> state4
 
 Agent b:
-init: holding
-nact: holding -> holding
-nact: deposit -> deposit 
-act: holding -[Bb==True and Aa==True]> deposit [Bb=False, dB=True]
-late_act: holding -[Bb==True and dA==True]> deposit [Bb=False, dB=True]
-fin: deposit -[dA == True and dA == True]> goal [Ba=True, Ab=True, dA=False, dB=False]
-shared cancel: deposit -> holding [Aa=True, dA=False, Bb=True, dB=False]
-nact: goal -> goal
+init: state1
+nact: state1 -> state1 
+nact: state2 -> state2 
+act: state1 -> state2 [Bb=False, dB=True]
+fin: state2 -[dA == True and dA == True]> state4 [Ba=True, Ab=True, dA=False, dB=False]
+cancelb: state2 -[dB == True and Aa == True]> state1 [Bb=True, dB=False]
+nact: state4 -> state4
 
 PERSISTENT: [Aa, Bb, Ba, Ab, dA, dB]
 INITIAL: [Aa=True, Bb=True, Ba=False, Ab=False, dA=False, dB=False]
 COALITION: [a]
 LOGIC: UCL
-FORMULA: <<a>>(dA = True)
+FORMULA: {[(((dA = True) & (Bb = True)), b, ((dA = True) & (dB = True)))+], [(((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+]}<<a,b>><<b>>((dA = True) & (dB = True))

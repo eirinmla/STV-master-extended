@@ -22,4 +22,6 @@ PERSISTENT: [Aa, Bb, Ba, Ab, dA, dB]
 INITIAL: [Aa=True, Bb=True, Ba=False, Ab=False, dA=False, dB=False]
 COALITION: [a]
 LOGIC: UCL
-FORMULA: {[((dA = True), a, (Ab = True))-, ((dB = True), b, (Ba = True))-, ((Ab = True), a, (Ab = True))-]}<<a>>(dA = True)
+FORMULA: <<a>>(dA = True)
+%FORMULA: {[(((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+]}<<a>><<b>>((dA = True) & (dB = True))
+%FORMULA: {[((dA = True), a, (Ab = True))-, ((dB = True), b, (Ba = True))-, ((Ab = True), a, (Ab = True))-]}<<a>>(dA = True)

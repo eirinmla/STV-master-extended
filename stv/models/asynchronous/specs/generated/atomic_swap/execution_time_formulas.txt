@@ -1,0 +1,33 @@
+SEMANTICS: synchronous
+
+Agent a:
+init: state1
+nact: state1 -> state1 
+nact: state2 -> state2
+act: state1 -> state2 [dA=True, Aa=False]
+fin: state2 -[dA == True and dB == True]> state4 [Ba=True, Ab=True, dA=False, dB=False]
+cancel: state2 -[dA == True and Bb == True]> state1 [Aa=True, dA=False]
+nact: state4 -> state4
+
+Agent b:
+init: state1
+nact: state1 -> state1 
+nact: state2 -> state2 
+act: state1 -> state2 [Bb=False, dB=True]
+fin: state2 -[dA == True and dA == True]> state4 [Ba=True, Ab=True, dA=False, dB=False]
+cancelb: state2 -[dB == True and Aa == True]> state1 [Bb=True, dB=False]
+nact: state4 -> state4
+
+PERSISTENT: [Aa, Bb, Ba, Ab, dA, dB]
+INITIAL: [Aa=True, Bb=True, Ba=False, Ab=False, dA=False, dB=False]
+COALITION: [a]
+LOGIC: UCL
+% TESTED EXECUTION TIME
+%FORMULA: <<a>>(dA = True)
+%FORMULA: <<a,b>><<a>>(dA = True)
+%FORMULA: {[(((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+]}<<a>>(dA = True)
+%FORMULA: {[(((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+, (((dA = True) & (Bb = True)), b, ((dA = True) & (dB = True)))+]}<<a>><<b>>((dA = True) & (dB = True))
+%FORMULA: {[(((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+],[(((dA = True) & (Bb = True)), b, ((dA = True) & (dB = True)))+]}<<a>><<b>>((dA = True) & (dB = True))
+%FORMULA: {[(((dA = True) & (dB = True)), b, ((Ab = True) & (Ba = True)))-, (((dA = True) & (dB = True)), b, ((dA = True) & (dB = True)))-,(((dA = True) & (dB = True)), a, ((dA = True) & (dB = True)))-,(((Ab = True) & (Ba = True)), a, ((Ab = True) & (Ba = True)))-,(((Ab = True) & (Ba = True)), b, ((Ab = True) & (Ba = True)))-]}<<a>>(dA = True)
+%FORMULA: {[(((dA = True) & (Bb = True)), b, ((dA = True) & (dB = True)))+, (((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+], [(((dA = True) & (Bb = True)), b, ((dA = True) & (dB = True)))-, (((dA = True) & (dB = True)), a, ((Ab = True) & (Ba = True)))-,  (((dA = True) & (dB = True)), b, ((Ab = True) & (Ba = True)))-, (((Ab = True) & (Ba = True)), a, ((Ab = True) & (Ba = True)))-, (((Ab = True) & (Ba = True)), b, ((Ab = True) & (Ba = True)))-]}<<a, b>><<a>>((dA = True) & (dB = True))
+FORMULA: {[({[(((Aa = True) & (dB = True)), a, ((dA = True) & (dB = True)))+]}<<a>>(dA = True), a, ((dA = True) & (dB = True)))+]}<<a>>(dA = True)
