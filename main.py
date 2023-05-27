@@ -109,15 +109,18 @@ def asynchronous(filename):
 @verify.command()
 @click.option('--filename', default="simplemod2", prompt="Model file name", help="Model file name")
 def ucl(filename):
+    #m_start = time.process_time() #For testing execution time
     model = GlobalModelParser().parse(f"stv/models/asynchronous/specs/generated/{filename}.txt")
 
     start = time.process_time()
     model.generate(reduction=False)
     end = time.process_time()
 
-    print(f"Generation time: {end - start}, #states: {model.states_count}")
+    print(f"Generation time: {end - start}, #states: {model.states_count}, #transitions: {model.transitions_count}")
     result = model.verify_approximation_ucl()
     print(f"Upper approximation\nTime: {result[1]}, result: {result[0]}")
+    #m_end = time.process_time() #For testing execution time
+    #print("Execution Time: ", (m_end - m_start)*1000) #For testing execution time
 
 @run.group()
 def generate_spec():
