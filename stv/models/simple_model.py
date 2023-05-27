@@ -314,7 +314,7 @@ class SimpleModel:
         """
         atl_model = ATLIrModel(self._no_agents)
         atl_model = self._copy_model(atl_model, self._actions, epistemic=False)
-        ATLIrModel.print_model(atl_model) # only a print
+        #ATLIrModel.print_model(atl_model) # only a print
         return atl_model
 
     def updated_model(self, new_transitions) -> ATLIrModel:
@@ -328,7 +328,7 @@ class SimpleModel:
             self.add_transition(transition[0], transition[1], transition[2])
         updated_model = ATLIrModel(self._no_agents)
         updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
-        ATLIrModel.print_model(updated_model) # only a print
+        #ATLIrModel.print_model(updated_model) # only a print
         return updated_model
 
 
@@ -343,7 +343,7 @@ class SimpleModel:
             self.remove_transition(transition[0][0], transition[0][1], transition[1])
         updated_model = ATLIrModel(self._no_agents)
         updated_model = self._copy_model(updated_model, self._actions, epistemic=False)
-        ATLIrModel.print_model(updated_model) # only a print
+        #ATLIrModel.print_model(updated_model) # only a print
         return updated_model
 
     def to_atl_imperfect(self) -> ATLirModel:
