@@ -26,7 +26,11 @@ pip install -r requirements.txt
 ```
 python main.py verify ucl --filename atomic_swap/many_props
 ```
-The filename can be any txt-file in the map generated, path:stv/models/asynchronous/specs/generated/, write the filename without .txt
+The filename can be any txt-file in the folder generated, path:stv/models/asynchronous/specs/generated/, write the filename without .txt
+
+If verifying formulas from the thesis' results the filenames are atomic_swap/many_props, atomic_swap/many_props2, atomic_swap/many_props3, atomic_swap/many_props4
+
+If testing execution time, comment-mark on lines 112, 122 og 123 in main.py has to be removed. All formulas can be found in execution_time_formulas.txt inside atomic_swap folder.
 
 # STV - StraTegic Verifier
 
