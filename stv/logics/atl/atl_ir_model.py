@@ -365,7 +365,7 @@ class ATLIrModel:
                     result_states.add(state_id)
                     is_winning_state[state_id] = True
                     break  
-        print(self.strategy)
+        print("Strategy for coalition: ", self.strategy)
         return result_states
 
     def maximum_formula_many_agents(self, agent_ids: List[int], winning_states: Set[int]) -> Set[int]: # GLOBAL-operator 
