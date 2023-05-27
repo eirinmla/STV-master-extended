@@ -1,3 +1,33 @@
+# STV - StraTegic Verifier - Extended Edition
+## Extension including Coalition Logic and Dictatorial Dynamic Coalition Logic
+The formulas has to be written correctly formatted. It is assumed that there is only two agents in the model,
+no empty coalitions and that the formula verified has to start with either an upgrade or a coalition. Can only be positive or negative updates in the same upgrade.
+
+Format of formula:
++ Upgrade:  [one or more updates separated by comma]
++ Update:  positive upgrade: (expression, agent name, expression)+ or negative upgrade: (expression, agent name, expression)-
++ Coalition: << agent names separated by comma >>
++ Proposition: (p = True) or (p = False)    (can be other letters or words although the truth value has to be stated)
+  
+Examples of expression: 
++ << a >>(p = True)
++ [((p = True), a, (q = False))+]<< a >>(q = False)
++ [((p = True), a, (q = False))+]<< a >>((q = False) & (p = True))
++ [((p = True), a, (q = False))+, ((p = True), a, (p = True))+]<< a >>((q = False) | (p = True))
+
+Format of model is same as explained in the documentation at the web version: http://stv.cs-htiew.com (all the same as in the original version) 
+  
+  
+## Usage (Extended Version)
+```
+pip install -r requirements.txt
+```
+
+```
+python main.py verify ucl --filename atomic_swap/many_props
+```
+The filename can be any txt-file in the map generated, path:stv/models/asynchronous/specs/generated/, write the filename without .txt
+
 # STV - StraTegic Verifier
 
 #### Collection of algorithms for verification of ATLir (and ATLIr) models
