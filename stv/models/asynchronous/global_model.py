@@ -964,7 +964,7 @@ class GlobalModel:
                 for element in from_states_ids:
                     granted_powers_dict[str(update.agent)].append(element)
             else: 
-                granted_powers_dict[str(update.agent)] = (from_states_ids)
+                granted_powers_dict[str(update.agent)] = list(from_states_ids)
 
             new_transitions_list += new_transitions
 
