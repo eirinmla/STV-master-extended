@@ -913,13 +913,13 @@ class GlobalModel:
 
             updated_gm = gm.updating_model_upgrade_list(upgrade_formula.upgradeList, gm)
             result = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression, updated_gm)
-            print("result", upgrade_formula, result)
+            #print("result", upgrade_formula, result)
             return result
         
         elif isinstance(upgrade_formula, UpgradeFormula) and upgrade_formula.upgradeList and gm!=None:
             updated_gm = gm.updating_model_upgrade_list(upgrade_formula.upgradeList, gm)
             result = gm.updating_model_coalition_expression(upgrade_formula.coalitionExpression, updated_gm)
-            print("result", upgrade_formula, result)
+            #print("result", upgrade_formula, result)
             return result
 
         else: 
@@ -938,13 +938,13 @@ class GlobalModel:
         for upgrade in upgrade_list.upgrades:
             if upgrade.type == UpgradeType.P:
                 new_transitions = self.updating_model_upgrade_positive(upgrade)
-                print("New transitions: ", new_transitions)
+                print("New transition(s): ", new_transitions)
                 updated_gm = gm._model.updated_model(new_transitions)
             elif upgrade.type == UpgradeType.N:
                 preserved_transitions = self.updating_model_upgrade_negative(upgrade)
                 remaining_transitions, removed_transitions = self.transitions_to_remove(preserved_transitions) # including preserved forcing actions and other non-forcing actions
-                print("All preserved transitions:", remaining_transitions)
-                print("Removed transitions", removed_transitions)
+                #print("All preserved transitions:", remaining_transitions)
+                print("Removed transition(s):", removed_transitions)
                 updated_gm = gm._model.updated_model_negative(removed_transitions)
                 self.test_negative_clash(remaining_transitions)
         #print("disse transitions blir lagt til av gangen", new_transitions)
@@ -1004,6 +1004,7 @@ class GlobalModel:
         forcing_actions_agent1, forcing_actions_agent2 = self.get_forcing_actions()
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
+        print("Update:", update, "preserves forcing powers from state(s):", from_state_ids, "to state(s):", to_state_ids)
         agent = self.agent_name_to_id(str(update.agent))
         if agent == 0:
             for element in forcing_actions_agent1:
@@ -1039,7 +1040,7 @@ class GlobalModel:
         #print("update", update)
         from_state_ids = self.updating_model_upgrade_formula(update.fromState)
         to_state_ids = self.updating_model_upgrade_formula(update.toState)
-        print("from states and to states in update", from_state_ids, to_state_ids)
+        print("Update:", update, "grants powers from state(s):", from_state_ids, "to state(s):", to_state_ids)
         action_pairs = self.get_positive_transitions(from_state_ids, to_state_ids, update.agent)
         new_transitions = action_pairs
         return from_state_ids, new_transitions
@@ -1050,13 +1051,14 @@ class GlobalModel:
         #print("coalition_expression", coalition_expression)
         if coalition_expression.coalitionAgents:
             coalition = self.agent_name_coalition_to_ids(coalition_expression.coalitionAgents)
-            print("coalition", coalition)
+            print("Formula to be verified: ", coalition_expression)
+            print("Coalition", coalition)
             winning_states = set(self.updating_model_simple_expression(coalition_expression.simpleExpression, self))
-            #print("winning_states", winning_states)
+            print("Winning_states", winning_states)
             if current_model != ATLIrModel: 
                 current_model = self._model.to_atl_perfect()
             result = current_model.ucl_next(coalition, winning_states)
-            print("temporary result from coalition expression", result)
+            print("Temporary result from coalition expression", result)
             return result
         else:
             result = self.updating_model_simple_expression(coalition_expression.simpleExpression, self)
@@ -1112,7 +1114,7 @@ class GlobalModel:
                state.set_prop(expr.left, False)
             if expr.evaluate(state.props):
                 result.append(state.id)
-        print("Props:", expr, "States with props:", result)
+        #print("Props:", expr, "States with props:", result)
         return result
 
     def get_resulting_states(self, right, operator, left=set()):
@@ -1127,7 +1129,7 @@ class GlobalModel:
             result = set(left).intersection(set(right)) 
         elif operator == SimpleExpressionOperator.OR:
             result = set(left).union(set(right))
-        print("get_resulting_states", left, operator, right, " = ", result)
+        #print("get_resulting_states", left, operator, right, " = ", result)
         return result
         
     def get_positive_transitions(self, from_states, to_states, agent):
